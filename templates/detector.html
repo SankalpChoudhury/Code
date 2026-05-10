@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Phishing Detector | Premium</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style_premium.css') }}">
+    <script>
+        function showLoader() {
+            document.getElementById('loader').style.display = 'flex';
+        }
+    </script>
+</head>
+<body>
+    <div class="bg-overlay"></div>
+
+    <!-- Loading Overlay -->
+    <div id="loader" class="loader-overlay">
+        <div class="spinner"></div>
+        <h2 style="font-weight: 700; color: #fff;">Analyzing Security Signals...</h2>
+        <p style="color: #94a3b8;">Performing heuristic checks and AI model inference.</p>
+    </div>
+
+    <nav class="navbar-premium">
+        <a href="{{ url_for('home') }}" class="navbar-brand">Website Phishing Detection Using ML</a>
+        <div class="nav-links">
+            <a href="{{ url_for('first') }}">Home</a>
+            <a href="{{ url_for('information') }}">Accuracy</a>
+            <a href="{{ url_for('chart') }}">Analytics</a>
+            <a href="{{ url_for('login') }}">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container-premium animate-fade">
+        <div class="glass-card">
+            <div class="header-text">
+                <h1>Smart Detector</h1>
+                <p>AI-powered protection against malicious websites and fraudulent links.</p>
+            </div>
+
+            <div class="smart-detector">
+                <div class="input-section">
+                    <form action="{{ url_for('detect_url') }}" method="POST" onsubmit="showLoader()">
+                        <label style="display: block; margin-bottom: 1rem; font-weight: 600; color: #818cf8;">DETECTION BY URL</label>
+                        <div class="url-input-wrapper">
+                            <input type="text" name="url" class="premium-input" placeholder="Paste website link here (e.g., https://...)" required>
+                            <button type="submit" class="premium-btn">SCAN NOW</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="divider">
+                    <span>OR MANUAL AUDIT</span>
+                </div>
+
+                <div class="input-section">
+                    <form action="{{ url_for('result') }}" method="POST">
+                        <label style="display: block; margin-bottom: 1rem; font-weight: 600; color: #f472b6;">HEURISTIC FEATURE ANALYSIS</label>
+                        <div class="form-grid">
+                            <div class="form-item">
+                                <label>IP in URL <span class="tooltip-icon" data-tip="Malicious sites often use numerical IP addresses instead of domain names.">i</span></label>
+                                <div class="radio-group">
+                                    <label class="radio-option"><input type="radio" name="ip" value="1"> Yes</label>
+                                    <label class="radio-option"><input type="radio" name="ip" value="2" checked> No</label>
+                                </div>
+                            </div>
+                            <div class="form-item">
+                                <label>URL Length <span class="tooltip-icon" data-tip="Extremely long URLs are frequently used to hide malicious scripts.">i</span></label>
+                                <div class="radio-group">
+                                    <label class="radio-option"><input type="radio" name="ul" value="1" checked>&lt; 54 chars</label>
+                                    <label class="radio-option"><input type="radio" name="ul" value="0">54 - 75 chars</label>
+                                    <label class="radio-option"><input type="radio" name="ul" value="2">&gt; 75 chars</label>
+                                </div>
+                            </div>
+                            <div class="form-item">
+                                <label>Shortening Service <span class="tooltip-icon" data-tip="URL shorteners (like bit.ly) are used to mask the actual destination.">i</span></label>
+                                <div class="radio-group">
+                                    <label class="radio-option"><input type="radio" name="at" value="2"> Yes</label>
+                                    <label class="radio-option"><input type="radio" name="at" value="1" checked> No</label>
+                                </div>
+                            </div>
+                            <div class="form-item">
+                                <label>Prefix/Suffix (-) <span class="tooltip-icon" data-tip="Dashes in domain names are a common indicator of phishing impersonation.">i</span></label>
+                                <div class="radio-group">
+                                    <label class="radio-option"><input type="radio" name="ps" value="2"> Yes</label>
+                                    <label class="radio-option"><input type="radio" name="ps" value="1" checked> No</label>
+                                </div>
+                            </div>
+                            <div class="form-item">
+                                <label>Sub-domain Count <span class="tooltip-icon" data-tip="Excess subdomains are used to confuse users.">i</span></label>
+                                <div class="radio-group">
+                                    <label class="radio-option"><input type="radio" name="sd" value="1"> 1 - 2 dots</label>
+                                    <label class="radio-option"><input type="radio" name="sd" value="0"> 3 dots</label>
+                                    <label class="radio-option"><input type="radio" name="sd" value="2" checked> &gt; 3 dots</label>
+                                </div>
+                            </div>
+                            <div class="form-item">
+                                <label>HTTPS Token <span class="tooltip-icon" data-tip="Secure sites must have HTTPS.">i</span></label>
+                                <div class="radio-group">
+                                    <label class="radio-option"><input type="radio" name="ht" value="1"> Yes</label>
+                                    <label class="radio-option"><input type="radio" name="ht" value="2" checked> No</label>
+                                </div>
+                            </div>
+                            <div class="form-item">
+                                <label>WHOIS Record <span class="tooltip-icon" data-tip="A missing WHOIS record is a major red flag.">i</span></label>
+                                <div class="radio-group">
+                                    <label class="radio-option"><input type="radio" name="ab" value="1" checked> Exists</label>
+                                    <label class="radio-option"><input type="radio" name="ab" value="2"> Missing</label>
+                                </div>
+                            </div>
+                            <div class="form-item">
+                                <label>Domain Age <span class="tooltip-icon" data-tip="Phishing sites are typically newly registered.">i</span></label>
+                                <div class="radio-group">
+                                    <label class="radio-option"><input type="radio" name="ad" value="1" checked>&gt; 6 months</label>
+                                    <label class="radio-option"><input type="radio" name="ad" value="2">&lt; 6 months</label>
+                                </div>
+                            </div>
+                            <div class="form-item">
+                                <label>DNS Record <span class="tooltip-icon" data-tip="Legitimate sites always have valid DNS records.">i</span></label>
+                                <div class="radio-group">
+                                    <label class="radio-option"><input type="radio" name="dns" value="1" checked> Valid</label>
+                                    <label class="radio-option"><input type="radio" name="dns" value="2"> Invalid</label>
+                                </div>
+                            </div>
+                            <div class="form-item">
+                                <label>Web Traffic <span class="tooltip-icon" data-tip="Safe sites usually have measurable global traffic.">i</span></label>
+                                <div class="radio-group">
+                                    <label class="radio-option"><input type="radio" name="wt" value="1" checked> High Rank</label>
+                                    <label class="radio-option"><input type="radio" name="wt" value="0"> Medium Rank</label>
+                                    <label class="radio-option"><input type="radio" name="wt" value="2"> No Traffic</label>
+                                </div>
+                            </div>
+                            <input type="hidden" name="ru" value="1">
+                            <input type="hidden" name="ua" value="1">
+                            <input type="hidden" name="sfh" value="1">
+                            <input type="hidden" name="re" value="1">
+                            <input type="hidden" name="mo" value="1">
+                            <input type="hidden" name="po" value="1">
+                        </div>
+                        <div style="text-align: center; margin-top: 3rem;">
+                            <button type="submit" class="premium-btn" style="background: linear-gradient(135deg, #f472b6, #db2777);">ANALYZE FEATURES</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer style="text-align: center; padding: 2rem; color: #64748b; font-size: 0.9rem;">
+        &copy; 2026 Website Phishing Detection Using ML. Advanced Cybersecurity Solutions.
+    </footer>
+</body>
+</html>

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<form class="form" action="{{ url_for('detect_url') }}" method="POST">
+    <h1 class="header">URL Phishing Detection</h1>
+    <div class="container">
+        <div class="item" style="width: 100%; text-align: center;">
+            <p>Enter the URL of the website you want to check:</p>
+            <input type="text" name="url" placeholder="e.g. https://www.google.com" required style="width: 80%; padding: 10px; font-size: 16px; margin-top: 10px; border-radius: 5px; border: 1px solid #ccc;">
+        </div>
+    </div>
+    <div class="detect">
+        <input class="btn" type="submit" value="Detect">
+    </div>
+
+    <a class="btn-back" href="{{ url_for('home') }}">
+        <span> &larr; Back</span>
+    </a>
+</form>
+
+{% endblock %}

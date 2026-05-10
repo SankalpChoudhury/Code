@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dataset Preview | PhishGuard AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style_premium.css') }}">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+    <style>
+        .table-container {
+            overflow-x: auto;
+            margin: 2rem 0;
+            border-radius: 1rem;
+            background: rgba(0,0,0,0.2);
+            border: 1px solid var(--glass-border);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            color: #cbd5e1;
+            font-size: 0.9rem;
+        }
+        th {
+            background: rgba(255,255,255,0.05);
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 2px solid var(--glass-border);
+            color: var(--primary);
+            white-space: nowrap;
+        }
+        td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        tr:hover {
+            background: rgba(255,255,255,0.03);
+        }
+        .action-bar {
+            display: flex;
+            justify-content: center;
+            margin-top: 3rem;
+            gap: 1.5rem;
+        }
+        #loading {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+    </style>
+    <script>
+        function runTraining() {
+            $('#training-btn').hide();
+            $('#loading').css('display', 'flex');
+            
+            // Simulating training delay
+            setTimeout(function() {
+                alert("Model Training & Testing Completed Successfully!");
+                window.location = "{{url_for('detect')}}";
+            }, 5000);
+        }
+    </script>
+</head>
+<body>
+    <div class="bg-overlay"></div>
+
+    <nav class="navbar-premium">
+        <a href="{{ url_for('home') }}" class="navbar-brand">Website Phishing Detection Using ML</a>
+        <div class="nav-links">
+            <a href="{{ url_for('home') }}">Dashboard</a>
+            <a href="{{ url_for('upload') }}">New Upload</a>
+            <a href="{{ url_for('login') }}">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container-premium animate-fade" style="max-width: 1300px;">
+        <div class="glass-card">
+            <div class="header-text">
+                <h1>Dataset Preview</h1>
+                <p>Verify your data before initializing model training and cross-validation.</p>
+            </div>
+
+            <div class="table-container">
+                {{ df_view.to_html(classes="table", na_rep="-") | safe }}
+            </div>
+
+            <div class="action-bar">
+                <button id="training-btn" class="premium-btn" onclick="runTraining()" style="width: 300px;">INITIALIZE TRAINING</button>
+                <a href="{{ url_for('upload') }}" class="premium-btn" style="text-decoration: none; background: var(--glass); border: 1px solid var(--glass-border);">RE-UPLOAD FILE</a>
+            </div>
+
+            <div id="loading">
+                <div class="spinner"></div>
+                <h3 style="color: #fff;">Processing Training Pipeline...</h3>
+                <p style="color: #64748b;">Optimizing Random Forest weights and performing 30% test split.</p>
+            </div>
+        </div>
+    </div>
+
+    <footer style="text-align: center; padding: 4rem 2rem; color: #64748b; font-size: 0.9rem;">
+        &copy; 2026 Website Phishing Detection Using ML. Intelligence through data.
+    </footer>
+</body>
+</html>

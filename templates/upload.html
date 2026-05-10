@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dataset Upload | PhishGuard AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style_premium.css') }}">
+    <style>
+        .upload-card {
+            max-width: 600px;
+            margin: 5rem auto;
+            text-align: center;
+        }
+        .file-drop-area {
+            position: relative;
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 3rem;
+            border: 2px dashed var(--glass-border);
+            border-radius: 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            transition: 0.3s;
+            cursor: pointer;
+            margin: 2rem 0;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        .file-drop-area:hover {
+            border-color: var(--primary);
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .file-input {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 100%;
+            cursor: pointer;
+            opacity: 0;
+        }
+        .upload-icon {
+            font-size: 4rem;
+            opacity: 0.6;
+        }
+        .file-msg {
+            font-size: 1.1rem;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+        .requirement-list {
+            text-align: left;
+            background: rgba(0,0,0,0.2);
+            padding: 1.5rem;
+            border-radius: 1rem;
+            margin-top: 2rem;
+            font-size: 0.9rem;
+            color: #cbd5e1;
+        }
+        .requirement-list li {
+            margin-bottom: 0.5rem;
+        }
+    </style>
+    <script>
+        function updateFileName(input) {
+            const msg = document.getElementById('file-message');
+            if (input.files && input.files.length > 0) {
+                msg.textContent = "Selected: " + input.files[0].name;
+                msg.style.color = "#818cf8";
+            } else {
+                msg.textContent = "Click or drag dataset file here";
+                msg.style.color = "#94a3b8";
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="bg-overlay"></div>
+
+    <nav class="navbar-premium">
+        <a href="{{ url_for('home') }}" class="navbar-brand">Website Phishing Detection Using ML</a>
+        <div class="nav-links">
+            <a href="{{ url_for('home') }}">Dashboard</a>
+            <a href="{{ url_for('chart') }}">Analytics</a>
+            <a href="{{ url_for('login') }}">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container-premium animate-fade">
+        <div class="glass-card upload-card">
+            <div class="header-text" style="margin-bottom: 2rem;">
+                <h1>Train the Model</h1>
+                <p>Upload a CSV dataset to enhance the AI's detection capabilities.</p>
+            </div>
+
+            <form action="{{ url_for('preview') }}" method="post" enctype="multipart/form-data">
+                <div class="file-drop-area">
+                    <span class="upload-icon">📁</span>
+                    <span id="file-message" class="file-msg">Click or drag dataset file here</span>
+                    <input type="file" name="datasetfile" class="file-input" required onchange="updateFileName(this)">
+                </div>
+
+                <button type="submit" class="premium-btn" style="width: 100%;">UPLOAD & PREVIEW</button>
+            </form>
+
+            <div class="requirement-list">
+                <h4 style="margin-top: 0; color: #fff; font-size: 1rem; margin-bottom: 1rem;">File Requirements:</h4>
+                <ul style="margin: 0; padding-left: 1.2rem;">
+                    <li>Supported format: <strong>.csv</strong></li>
+                    <li>Must contain exactly <strong>16 feature columns</strong>.</li>
+                    <li>Target column should be labeled <strong>'Result'</strong>.</li>
+                    <li>Max file size: 50MB.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <footer style="text-align: center; padding: 4rem 2rem; color: #64748b; font-size: 0.9rem;">
+        &copy; 2026 Website Phishing Detection Using ML. Data-driven security.
+    </footer>
+</body>
+</html>

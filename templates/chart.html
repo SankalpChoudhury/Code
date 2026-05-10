@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Threat Analytics | Website Phishing Detection Using ML</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style_premium.css') }}">
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+        google.charts.load('current', {'packages':['corechart']});
+        google.charts.setOnLoadCallback(drawCharts);
+
+        function drawCharts() {
+            // Dark Mode Theme Options
+            const commonOptions = {
+                backgroundColor: 'transparent',
+                legend: { position: 'bottom', textStyle: { color: '#94a3b8' } },
+                titleTextStyle: { color: '#fff', fontSize: 18, bold: true },
+                hAxis: { textStyle: { color: '#64748b' }, gridlines: { color: '#334155' } },
+                vAxis: { textStyle: { color: '#64748b' }, gridlines: { color: '#334155' } },
+                colors: ['#6366f1', '#ec4899', '#f43f5e', '#8b5cf6']
+            };
+
+            // 1. Detection Distribution
+            var data1 = google.visualization.arrayToDataTable([
+                ['Type', 'Count'],
+                ['Safe', 450],
+                ['Phishing', 550]
+            ]);
+            var chart1 = new google.visualization.PieChart(document.getElementById('pie_chart'));
+            chart1.draw(data1, { ...commonOptions, title: 'Global Detection Distribution', pieHole: 0.4 });
+
+            // 2. Historical Trends
+            var data2 = google.visualization.arrayToDataTable([
+                ['Month', 'Safe', 'Phishing'],
+                ['Jan', 1000, 400],
+                ['Feb', 1170, 460],
+                ['Mar', 660, 1120],
+                ['Apr', 1030, 540]
+            ]);
+            var chart2 = new google.visualization.ColumnChart(document.getElementById('bar_chart'));
+            chart2.draw(data2, { ...commonOptions, title: 'Monthly Threat Landscape' });
+        }
+    </script>
+</head>
+<body>
+    <div class="bg-overlay"></div>
+
+    <nav class="navbar-premium">
+        <a href="{{ url_for('home') }}" class="navbar-brand">Website Phishing Detection Using ML</a>
+        <div class="nav-links">
+            <a href="{{ url_for('home') }}">Dashboard</a>
+            <a href="{{ url_for('detect') }}">Detector</a>
+            <a href="{{ url_for('login') }}">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container-premium animate-fade">
+        <div class="header-text">
+            <h1>Threat Analytics</h1>
+            <p>Real-time visualization of global phishing trends and security intelligence.</p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 2rem;">
+            <div class="glass-card" style="padding: 2rem;">
+                <div id="pie_chart" style="width: 100%; height: 400px;"></div>
+            </div>
+            <div class="glass-card" style="padding: 2rem;">
+                <div id="bar_chart" style="width: 100%; height: 400px;"></div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis Report | Website Phishing Detection Using ML</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style_premium.css') }}">
+    <style>
+        .result-card { text-align: center; padding: 3rem; }
+        .risk-meter {
+            width: 200px;
+            height: 100px;
+            margin: 2rem auto;
+            position: relative;
+            overflow: hidden;
+        }
+        .meter-bg {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: conic-gradient(#4ade80 0deg 90deg, #facc15 90deg 180deg, #f87171 180deg 360deg);
+            transform: rotate(-90deg);
+        }
+        .meter-mask {
+            position: absolute;
+            top: 20px; left: 20px;
+            width: 160px; height: 160px;
+            background: #0f172a;
+            border-radius: 50%;
+        }
+        .needle {
+            position: absolute;
+            bottom: 0; left: 50%;
+            width: 4px; height: 90px;
+            background: #fff;
+            transform-origin: bottom center;
+            transition: 1s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 4px;
+        }
+        .report-section {
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--glass-border);
+        }
+        .report-btn {
+            background: transparent;
+            border: 1px solid #64748b;
+            color: #94a3b8;
+            padding: 0.5rem 1.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: 0.3s;
+            margin: 0 0.5rem;
+        }
+        .report-btn:hover { border-color: #fff; color: #fff; }
+    </style>
+</head>
+<body>
+    <div class="bg-overlay"></div>
+
+    <div class="container-premium animate-fade">
+        <div class="glass-card result-card">
+            <h2 style="color: #cbd5e1; font-weight: 500; letter-spacing: 0.2em;">THREAT ANALYSIS</h2>
+            
+            <div class="risk-meter">
+                <div class="meter-bg"></div>
+                <div class="meter-mask"></div>
+                <div class="needle" style="transform: translateX(-50%) rotate({% if pred == 'SAFE' %} -60 {% else %} 60 {% endif %}deg);"></div>
+            </div>
+
+            {% if pred == 'SAFE' %}
+                <h1 style="color: #4ade80; font-size: 3rem; font-weight: 800;">SECURE</h1>
+                <p class="recommendation">No malicious patterns detected. This site follows standard security protocols.</p>
+            {% else %}
+                <h1 style="color: #f87171; font-size: 3rem; font-weight: 800;">MALICIOUS</h1>
+                <p class="recommendation">High-risk indicators found. This site appears to be a phishing attempt.</p>
+            {% endif %}
+
+            <div style="margin-top: 2rem;">
+                <a href="{{ url_for('detect') }}" class="premium-btn" style="text-decoration: none;">START NEW SCAN</a>
+            </div>
+
+            <div class="report-section">
+                <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 1rem;">Was this analysis accurate? Help us improve our AI.</p>
+                <div id="report-actions">
+                    <button class="report-btn" onclick="submitReport('safe')">It's Safe</button>
+                    <button class="report-btn" onclick="submitReport('phishing')">It's Phishing</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function submitReport(type) {
+            const scannedUrl = "{{ url }}";
+            
+            const formData = new FormData();
+            formData.append('url', scannedUrl);
+            formData.append('type', type);
+
+            fetch('/report', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('report-actions').innerHTML = `<p style="color: #4ade80;">Thank you for your feedback!</p>`;
+            })
+            .catch(err => alert("Error submitting report"));
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model Accuracy | PhishGuard AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style_premium.css') }}">
+    <style>
+        .accuracy-card {
+            text-align: center;
+            padding: 4rem;
+        }
+        .acc-circle {
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: conic-gradient(var(--primary) {{ acc }}%, var(--glass) 0);
+            margin: 3rem auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            box-shadow: 0 0 50px rgba(99, 102, 241, 0.4);
+        }
+        .acc-circle::before {
+            content: "";
+            position: absolute;
+            width: 260px;
+            height: 260px;
+            background: #1e293b;
+            border-radius: 50%;
+        }
+        .acc-value {
+            position: relative;
+            font-size: 5rem;
+            font-weight: 800;
+            color: #fff;
+        }
+        .acc-value span {
+            font-size: 2rem;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-overlay"></div>
+
+    <nav class="navbar-premium">
+        <a href="{{ url_for('home') }}" class="navbar-brand">Website Phishing Detection Using ML</a>
+        <div class="nav-links">
+            <a href="{{ url_for('home') }}">Dashboard</a>
+            <a href="{{ url_for('chart') }}">Analytics</a>
+        </div>
+    </nav>
+
+    <div class="container-premium animate-fade">
+        <div class="glass-card accuracy-card">
+            <h1 style="margin-top: 0;">Performance Metrics</h1>
+            <p style="color: #94a3b8;">Current training accuracy of our Random Forest ensemble model.</p>
+
+            <div class="acc-circle">
+                <div class="acc-value">{{ acc }}<span>%</span></div>
+            </div>
+
+            <div class="form-grid" style="margin-top: 4rem; text-align: left;">
+                <div class="form-item">
+                    <label>Algorithm</label>
+                    <p style="color: #fff; margin: 0; font-size: 1.1rem;">Random Forest</p>
+                </div>
+                <div class="form-item">
+                    <label>Training Set</label>
+                    <p style="color: #fff; margin: 0; font-size: 1.1rem;">11,055 Samples</p>
+                </div>
+                <div class="form-item">
+                    <label>Features Analyzed</label>
+                    <p style="color: #fff; margin: 0; font-size: 1.1rem;">16 Heuristic Indicators</p>
+                </div>
+                <div class="form-item">
+                    <label>Test Split</label>
+                    <p style="color: #fff; margin: 0; font-size: 1.1rem;">30% (Random State 3)</p>
+                </div>
+            </div>
+
+            <div style="margin-top: 4rem;">
+                <a href="{{ url_for('home') }}" class="premium-btn" style="text-decoration: none;">RETURN TO DASHBOARD</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Website Phishing Detection Using ML</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style_premium.css') }}">
+    <style>
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        .dash-card {
+            padding: 2.5rem;
+            text-align: center;
+            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+        }
+        .dash-card:hover {
+            transform: translateY(-10px);
+            background: rgba(255, 255, 255, 0.15);
+            border-color: var(--primary);
+        }
+        .dash-icon {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            display: block;
+        }
+        .dash-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #fff;
+        }
+        .dash-card p {
+            color: #94a3b8;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-overlay"></div>
+
+    <nav class="navbar-premium">
+        <a href="{{ url_for('home') }}" class="navbar-brand">Website Phishing Detection Using ML</a>
+        <div class="nav-links">
+            <a href="{{ url_for('first') }}">Home</a>
+            <a href="{{ url_for('information') }}">Accuracy</a>
+            <a href="{{ url_for('chart') }}">Analytics</a>
+            <a href="{{ url_for('login') }}">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container-premium animate-fade">
+        <div class="header-text">
+            <h1 style="font-size: 3.5rem;">Command Center</h1>
+            <p>Welcome back, Admin. Your security shield is active and protecting your network.</p>
+        </div>
+
+        <div class="dashboard-grid">
+            <a href="{{ url_for('detect') }}" class="glass-card dash-card">
+                <span class="dash-icon">🔍</span>
+                <h3>Smart Detector</h3>
+                <p>Instantly scan URLs or perform manual feature analysis using our AI engine.</p>
+            </a>
+
+            <a href="{{ url_for('information') }}" class="glass-card dash-card">
+                <span class="dash-icon">📊</span>
+                <h3>System Accuracy</h3>
+                <p>View detailed performance metrics and model training statistics.</p>
+            </a>
+
+            <a href="{{ url_for('chart') }}" class="glass-card dash-card">
+                <span class="dash-icon">📈</span>
+                <h3>Threat Analytics</h3>
+                <p>Visualize phishing trends and historical data via interactive charts.</p>
+            </a>
+
+            <a href="{{ url_for('upload') }}" class="glass-card dash-card">
+                <span class="dash-icon">📁</span>
+                <h3>Dataset Upload</h3>
+                <p>Upload new training data to improve the model's intelligence over time.</p>
+            </a>
+        </div>
+    </div>
+</body>
+</html>
