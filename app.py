@@ -139,19 +139,20 @@ def register():
             flash("Username and password are required.", "warning")
             return redirect(url_for('register'))
 
-        hashed_password = generate_password_hash(password)
-        role = 'admin' if username.lower() == 'admin' else 'user'
-
+        # All web registrations are 'user' by default for security
+        role = 'user'
+        
+        conn = get_db_connection()
         try:
-            conn = get_db_connection()
             conn.execute('INSERT INTO users (username, password, role) VALUES (?, ?, ?)',
-                         (username, hashed_password, role))
+                         (username, generate_password_hash(password), role))
             conn.commit()
-            conn.close()
-            flash(f"Registration successful! Role: {role.capitalize()}. Please log in.", "success")
+            flash("Registration successful! Please login.", "success")
             return redirect(url_for('login'))
         except sqlite3.IntegrityError:
-            flash("Username already exists. Please choose another one.", "danger")
+            flash("Username already exists.", "danger")
+        finally:
+            conn.close()
             
     return render_template('register.html')
 
@@ -249,28 +250,57 @@ def result():
         return render_template('result.html', pred='SAFE', url="Manual Entry")
     return render_template('result.html', pred='Phishing', url="Manual Entry")
 
-@app.route("/detect_url", methods=['GET', 'POST'])
+@app.route('/detect', methods=['POST'])
 @login_required
 def detect_url():
-    if request.method == 'POST':
-        url = request.form.get('url')
-        if url:
-            # Rule-based check first
-            if is_high_risk_phishing_pattern(url):
-                return render_template('result.html', pred='Phishing', url=url)
+    url = request.form.get('url')
+    if not url:
+        return render_template('detector.html')
 
-            int_features = extract_features(url)
-            
-            # Feature-profile check second
-            if is_high_risk_feature_profile(int_features, url):
-                return render_template('result.html', pred='Phishing', url=url)
+    # Extract features
+    int_features = extract_features(url)
+    
+    # Feature Names and mapping for report
+    feature_names = [
+        "IP Address Usage", "URL Length", "Shortening/At Symbol", "Prefix-Suffix (-)",
+        "Sub-domain Count", "HTTPS in Domain", "Request URL Integrity", "URL Anchor Patterns",
+        "Server Form Handler", "Domain Registration", "Redirect Frequency", "Mouse Effects",
+        "Pop-up Security", "Domain Age", "DNS Record Status", "Web Traffic Pattern"
+    ]
+    
+    # Analysis logic
+    findings = []
+    # 1=Safe, 0=Suspicious, 2=Phishing
+    for i, val in enumerate(int_features):
+        name = feature_names[i]
+        if val == 2:
+            findings.append({"feature": name, "status": "Danger", "msg": f"High risk {name} detected."})
+        elif val == 0:
+            findings.append({"feature": name, "status": "Warning", "msg": f"{name} appears unusual."})
+        else:
+            findings.append({"feature": name, "status": "Safe", "msg": f"{name} is verified safe."})
 
-            final = [np.array(int_features)]
-            predict = model_RF.prediction(final)
-            if predict == 1:
-                return render_template('result.html', pred='SAFE', url=url)
-            return render_template('result.html', pred='Phishing', url=url)
-    return render_template('detector.html')
+    # Rule-based overrides for clear phishing
+    is_rule_phish = is_high_risk_phishing_pattern(url)
+    is_profile_phish = is_high_risk_feature_profile(int_features, url)
+    
+    # Machine Learning Prediction
+    final = [np.array(int_features)]
+    predict = model_RF.prediction(final)
+    
+    # Logic for final result: If ML says Phish OR high-risk rules trigger
+    if predict == 0 or is_rule_phish or is_profile_phish:
+        result = "Phishing"
+        color = "#f43f5e"
+    else:
+        result = "Safe"
+        color = "#10b981"
+        
+    return render_template('detector.html', 
+                           url=url, 
+                           result=result, 
+                           color=color, 
+                           findings=findings)
 
 @app.route('/chart')
 @login_required

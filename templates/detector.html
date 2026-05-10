@@ -47,6 +47,38 @@
                 <p>AI-powered protection against malicious websites and fraudulent links.</p>
             </div>
 
+            {% if result %}
+            <div class="result-display animate-fade" style="margin-bottom: 3rem; padding: 2.5rem; background: rgba(255,255,255,0.03); border-radius: 1.5rem; border: 1px solid {{ color }};">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem;">
+                    <div>
+                        <h3 style="color: #94a3b8; font-size: 0.9rem; letter-spacing: 0.1em; margin-bottom: 0.5rem;">SCAN RESULT FOR:</h3>
+                        <p style="color: #fff; font-family: monospace; word-break: break-all;">{{ url }}</p>
+                    </div>
+                    <div style="text-align: right;">
+                        <h2 style="color: {{ color }}; font-size: 2.5rem; font-weight: 800; margin: 0;">{{ result }}</h2>
+                        <p style="color: #94a3b8; font-size: 0.8rem;">Confidence: High (AI-Ensemble)</p>
+                    </div>
+                </div>
+
+                <div class="analysis-report" style="margin-top: 2rem; border-top: 1px solid var(--glass-border); padding-top: 2rem;">
+                    <h4 style="color: #fff; margin-bottom: 1.5rem;">Security Analysis Report</h4>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
+                        {% for finding in findings %}
+                        <div style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 0.75rem; border-left: 4px solid {% if finding.status == 'Danger' %}#f43f5e{% elif finding.status == 'Warning' %}#f59e0b{% else %}#10b981{% endif %};">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
+                                <span style="color: #fff; font-size: 0.9rem; font-weight: 600;">{{ finding.feature }}</span>
+                                <span style="font-size: 0.7rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 1rem; background: {% if finding.status == 'Danger' %}rgba(244,63,94,0.1){% elif finding.status == 'Warning' %}rgba(245,158,11,0.1){% else %}rgba(16,185,129,0.1){% endif %}; color: {% if finding.status == 'Danger' %}#f43f5e{% elif finding.status == 'Warning' %}#f59e0b{% else %}#10b981{% endif %};">
+                                    {{ finding.status.upper() }}
+                                </span>
+                            </div>
+                            <p style="color: #94a3b8; font-size: 0.8rem; margin: 0;">{{ finding.msg }}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
             <div class="smart-detector">
                 <div class="input-section">
                     <form action="{{ url_for('detect_url') }}" method="POST" onsubmit="showLoader()">
