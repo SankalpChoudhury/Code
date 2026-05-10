@@ -5,23 +5,23 @@ import time
 
 from random_forest import RandomForest
 
-Dataset = "dataset_full_copy.csv"
+Dataset = "dataset_Upload.csv"
 
 def accuracy(y_true, y_pred):
     accuracy = np.sum(y_true == y_pred) / len(y_true)
     return round(accuracy, 4)
 
-# 3) load with np.genfromtxt()
-data = np.genfromtxt(Dataset, delimiter=",", dtype=np.int32)
-# print(data.shape)
+# Load with pandas for better error handling and column management
+df = pd.read_csv(Dataset, encoding='unicode_escape')
 
-# split into X and y
-n_samples, n_features = data.shape
-n_features -= 1
-X = data[:, 0:n_features]
-y = data[:, n_features]
-# print(X.shape, y.shape)
-# print(X[0, 0:5])
+# We only want the 16 features + 1 result
+# The features are columns 1 to 16, result is column 17 (0-indexed)
+# Drop any rows with NaN values just in case
+df = df.dropna(subset=df.columns[1:18])
+
+data = df.iloc[:, 1:18].values.astype(np.int32)
+X = data[:, 0:16]
+y = data[:, 16]
 
 # Timer start
 start_time = time.time()
@@ -30,22 +30,15 @@ from sklearn.model_selection import train_test_split
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=3)
 
 classifier = RandomForest(n_trees=21, max_depth=6)
-# classifier = RandomForest(n_trees=12, max_depth=6)
 
 classifier.train(X_train, y_train)
 y_pred = classifier.prediction(X_test)
 acc = accuracy(y_test, y_pred) * 100
 print (f"Random Forest Accuracy: {acc}")
 
-from sklearn.metrics import confusion_matrix, accuracy_score, f1_score
-cm = confusion_matrix(y_test, y_pred)
-print(f"Confusion Matrix : \n {cm}")
-f1 = f1_score(y_test, y_pred) * 100
-# print(f"f1 score : {f1}")
-
-# Display render time
-elapsed_time = time.time() - start_time
-print(time.strftime("Render Time : %H:%M:%S", time.gmtime(elapsed_time)))
+# Save accuracy to file for the web app to read
+with open('accuracy.txt', 'w') as f:
+    f.write(str(acc))
 
 # pickle
-# pickle.dump(classifier, open('model_RF.pkl','wb'))
+pickle.dump(classifier, open('model_RF.pkl','wb'))

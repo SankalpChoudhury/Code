@@ -52,7 +52,7 @@
             <a href="{{ url_for('first') }}">Home</a>
             <a href="{{ url_for('information') }}">Accuracy</a>
             <a href="{{ url_for('chart') }}">Analytics</a>
-            <a href="{{ url_for('login') }}">Logout</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
         </div>
     </nav>
 
@@ -81,11 +81,6 @@
                 <p>Visualize phishing trends and historical data via interactive charts.</p>
             </a>
 
-            <a href="{{ url_for('upload') }}" class="glass-card dash-card">
-                <span class="dash-icon">📁</span>
-                <h3>Dataset Upload</h3>
-                <p>Upload new training data to improve the model's intelligence over time.</p>
-            </a>
         </div>
     </div>
 </body>

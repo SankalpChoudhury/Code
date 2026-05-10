@@ -54,12 +54,7 @@
         function runTraining() {
             $('#training-btn').hide();
             $('#loading').css('display', 'flex');
-            
-            // Simulating training delay
-            setTimeout(function() {
-                alert("Model Training & Testing Completed Successfully!");
-                window.location = "{{url_for('detect')}}";
-            }, 5000);
+            $('#train-form').submit();
         }
     </script>
 </head>
@@ -71,7 +66,7 @@
         <div class="nav-links">
             <a href="{{ url_for('home') }}">Dashboard</a>
             <a href="{{ url_for('upload') }}">New Upload</a>
-            <a href="{{ url_for('login') }}">Logout</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
         </div>
     </nav>
 
@@ -87,7 +82,8 @@
             </div>
 
             <div class="action-bar">
-                <button id="training-btn" class="premium-btn" onclick="runTraining()" style="width: 300px;">INITIALIZE TRAINING</button>
+                <form id="train-form" action="{{ url_for('train') }}" method="POST" style="display: none;"></form>
+                <button id="training-btn" class="premium-btn" onclick="runTraining()" style="width: 300px;">UPDATE & RETRAIN MODEL</button>
                 <a href="{{ url_for('upload') }}" class="premium-btn" style="text-decoration: none; background: var(--glass); border: 1px solid var(--glass-border);">RE-UPLOAD FILE</a>
             </div>
 

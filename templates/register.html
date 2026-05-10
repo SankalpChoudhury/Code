@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login | Website Phishing Detection Using ML</title>
+    <title>Register | PhishGuard AI</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style_premium.css') }}">
     <style>
@@ -76,8 +76,8 @@
     <div class="container-premium login-container animate-fade">
         <div class="glass-card">
             <div class="login-header">
-                <h1>User Portal</h1>
-                <p style="color: #64748b;">Sign in to access analysis tools</p>
+                <h1>Join the Guard</h1>
+                <p style="color: #64748b;">Create your security analyst account</p>
             </div>
 
             {% with messages = get_flashed_messages(with_categories=true) %}
@@ -88,26 +88,22 @@
               {% endif %}
             {% endwith %}
 
-            <form action="{{ url_for('login') }}" method="POST">
+            <form action="{{ url_for('register') }}" method="POST">
                 <div class="form-group">
                     <label>Username</label>
-                    <input type="text" name="username" class="login-input" placeholder="" required autocomplete="off">
+                    <input type="text" name="username" class="login-input" placeholder="Choose a username" required>
                 </div>
 
                 <div class="form-group">
                     <label>Password</label>
-                    <input type="password" name="password" class="login-input" placeholder="" required autocomplete="off">
+                    <input type="password" name="password" class="login-input" placeholder="Create a password" required>
                 </div>
 
-                <button type="submit" class="premium-btn login-btn">AUTHORIZE ACCESS</button>
+                <button type="submit" class="premium-btn login-btn">CREATE ACCOUNT</button>
             </form>
 
             <div style="text-align: center; margin-top: 2rem;">
-                <p style="color: #64748b; font-size: 0.9rem;">Don't have an account? <a href="{{ url_for('register') }}" style="color: var(--primary); text-decoration: none; font-weight: 600;">Sign Up</a></p>
-            </div>
-
-            <div style="text-align: center; margin-top: 1rem;">
-                <a href="{{ url_for('admin_login') }}" style="color: #64748b; text-decoration: none; font-size: 0.8rem; opacity: 0.6;">Administrator Portal</a>
+                <p style="color: #64748b; font-size: 0.9rem;">Already have an account? <a href="{{ url_for('login') }}" style="color: var(--primary); text-decoration: none; font-weight: 600;">Sign In</a></p>
             </div>
             
             <div style="text-align: center; margin-top: 1rem;">

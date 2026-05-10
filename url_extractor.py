@@ -132,9 +132,10 @@ def is_trusted_domain(host):
     Check if the host is a known major trusted domain.
     """
     trusted_domains = [
-        "flipkart.com", "google.com", "amazon.in", "amazon.com", 
-        "microsoft.com", "apple.com", "facebook.com", "instagram.com",
-        "twitter.com", "linkedin.com", "netflix.com", "github.com", "flipkart.in"
+        "flipkart.com", "snapdeal.com", "amazon.in", "amazon.com", "paytm.com",
+        "myntra.com", "google.com", "microsoft.com", "apple.com", "facebook.com",
+        "instagram.com", "twitter.com", "linkedin.com", "netflix.com", "github.com",
+        "flipkart.in", "snapdeal.in"
     ]
     return any(host == td or host.endswith("." + td) for td in trusted_domains)
 

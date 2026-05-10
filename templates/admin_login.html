@@ -3,10 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login | Website Phishing Detection Using ML</title>
+    <title>Admin Portal | PhishGuard AI</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style_premium.css') }}">
     <style>
+        :root {
+            --primary: #f43f5e; /* Red color for Admin Portal */
+        }
         .login-container {
             max-width: 450px;
             margin: 10vh auto;
@@ -18,6 +21,7 @@
         .login-header h1 {
             font-size: 2.5rem;
             margin-bottom: 0.5rem;
+            color: var(--primary);
         }
         .form-group {
             margin-bottom: 1.5rem;
@@ -45,6 +49,7 @@
         .login-btn {
             width: 100%;
             margin-top: 1rem;
+            background: var(--primary);
         }
         .alert {
             padding: 1rem;
@@ -74,10 +79,10 @@
     <div class="bg-overlay"></div>
 
     <div class="container-premium login-container animate-fade">
-        <div class="glass-card">
+        <div class="glass-card" style="border-top: 4px solid var(--primary);">
             <div class="login-header">
-                <h1>User Portal</h1>
-                <p style="color: #64748b;">Sign in to access analysis tools</p>
+                <h1>Admin Access</h1>
+                <p style="color: #64748b;">Restricted Management Portal</p>
             </div>
 
             {% with messages = get_flashed_messages(with_categories=true) %}
@@ -88,7 +93,14 @@
               {% endif %}
             {% endwith %}
 
-            <form action="{{ url_for('login') }}" method="POST">
+            {% if session.get('role') == 'admin' %}
+            <div style="text-align: center; margin-bottom: 2rem; padding: 1rem; background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.2); border-radius: 1rem;">
+                <p style="color: #22c55e; margin-bottom: 1rem;">Admin Session Active</p>
+                <a href="{{ url_for('upload') }}" class="premium-btn" style="text-decoration: none; display: block; background: #22c55e;">GO TO DATASET MANAGEMENT</a>
+            </div>
+            {% endif %}
+
+            <form action="{{ url_for('admin_login') }}" method="POST">
                 <div class="form-group">
                     <label>Username</label>
                     <input type="text" name="username" class="login-input" placeholder="" required autocomplete="off">
@@ -99,19 +111,11 @@
                     <input type="password" name="password" class="login-input" placeholder="" required autocomplete="off">
                 </div>
 
-                <button type="submit" class="premium-btn login-btn">AUTHORIZE ACCESS</button>
+                <button type="submit" class="premium-btn login-btn" style="background: var(--primary);">AUTHORIZE ACCESS</button>
             </form>
 
             <div style="text-align: center; margin-top: 2rem;">
-                <p style="color: #64748b; font-size: 0.9rem;">Don't have an account? <a href="{{ url_for('register') }}" style="color: var(--primary); text-decoration: none; font-weight: 600;">Sign Up</a></p>
-            </div>
-
-            <div style="text-align: center; margin-top: 1rem;">
-                <a href="{{ url_for('admin_login') }}" style="color: #64748b; text-decoration: none; font-size: 0.8rem; opacity: 0.6;">Administrator Portal</a>
-            </div>
-            
-            <div style="text-align: center; margin-top: 1rem;">
-                <a href="{{ url_for('first') }}" style="color: #64748b; text-decoration: none; font-size: 0.9rem;">&larr; Back to Home</a>
+                <a href="{{ url_for('login') }}" style="color: #64748b; text-decoration: none; font-size: 0.9rem;">&larr; Switch to User Login</a>
             </div>
         </div>
     </div>
