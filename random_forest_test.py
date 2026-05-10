@@ -2,10 +2,12 @@ import numpy as np
 import pandas as pd
 import pickle
 import time
+import os
 
 from random_forest import RandomForest
 
-Dataset = "dataset_Upload.csv"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+Dataset = os.path.join(BASE_DIR, "dataset_Upload.csv")
 
 def accuracy(y_true, y_pred):
     accuracy = np.sum(y_true == y_pred) / len(y_true)

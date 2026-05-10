@@ -61,9 +61,16 @@ def first():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    import random
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
+        captcha_answer = request.form.get('captcha_answer')
+        
+        # Verify Captcha
+        if str(captcha_answer) != str(session.get('captcha_result')):
+            flash("Incorrect CAPTCHA answer. Please try again.", "danger")
+            return redirect(url_for('login'))
         
         conn = get_db_connection()
         user = conn.execute('SELECT * FROM users WHERE username = ?', (username,)).fetchone()
@@ -81,13 +88,26 @@ def login():
         else:
             flash("Invalid credentials. Please try again.", "danger")
             
-    return render_template('login.html', portal_type="User")
+    # Generate new Captcha for GET request
+    num1 = random.randint(1, 10)
+    num2 = random.randint(1, 10)
+    session['captcha_result'] = num1 + num2
+    captcha_text = f"{num1} + {num2}"
+            
+    return render_template('login.html', portal_type="User", captcha_text=captcha_text)
 
 @app.route('/admin_login', methods=['GET', 'POST'])
 def admin_login():
+    import random
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
+        captcha_answer = request.form.get('captcha_answer')
+        
+        # Verify Captcha
+        if str(captcha_answer) != str(session.get('admin_captcha_result')):
+            flash("Incorrect CAPTCHA. Access Denied.", "danger")
+            return redirect(url_for('admin_login'))
         
         conn = get_db_connection()
         user = conn.execute('SELECT * FROM users WHERE username = ?', (username,)).fetchone()
@@ -101,7 +121,13 @@ def admin_login():
         else:
             flash("Invalid admin credentials.", "danger")
             
-    return render_template('admin_login.html', portal_type="Admin")
+    # Generate new Captcha for GET request
+    num1 = random.randint(5, 15)
+    num2 = random.randint(5, 15)
+    session['admin_captcha_result'] = num1 + num2
+    captcha_text = f"{num1} + {num2}"
+            
+    return render_template('admin_login.html', portal_type="Admin", captcha_text=captcha_text)
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():

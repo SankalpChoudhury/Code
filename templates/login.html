@@ -99,6 +99,11 @@
                     <input type="password" name="password" class="login-input" placeholder="" required autocomplete="off">
                 </div>
 
+                <div class="form-group">
+                    <label>Security Check: {{ captcha_text }} = ?</label>
+                    <input type="number" name="captcha_answer" class="login-input" placeholder="Answer" required autocomplete="off">
+                </div>
+
                 <button type="submit" class="premium-btn login-btn">AUTHORIZE ACCESS</button>
             </form>
 
