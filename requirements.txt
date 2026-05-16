@@ -27,5 +27,6 @@ typing_extensions>=4.7.0
 tzdata>=2023.3
 urllib3>=2.0.0
 Werkzeug>=3.0.0
-gunicorn>=21.0.0Flask-SQLAlchemy>=3.1.1
+gunicorn>=21.0.0
+Flask-SQLAlchemy>=3.1.1
 psycopg2-binary>=2.9.9
