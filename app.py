@@ -412,10 +412,10 @@ def detect_url():
     
     # Analysis logic
     findings = []
-    # 1=Safe, 0=Suspicious, 2=Phishing
+    # 1=Safe, 0=Suspicious, -1=Phishing
     for i, val in enumerate(int_features):
         name = feature_names[i]
-        if val == 2:
+        if val == -1:
             findings.append({"feature": name, "status": "Danger", "msg": f"High risk {name} detected."})
         elif val == 0:
             findings.append({"feature": name, "status": "Warning", "msg": f"{name} appears unusual."})
@@ -428,10 +428,11 @@ def detect_url():
     
     # Machine Learning Prediction
     final = [np.array(int_features)]
-    predict = model_RF.prediction(final)
+    predict_arr = model_RF.prediction(final)
+    predict = int(predict_arr[0]) if hasattr(predict_arr, '__iter__') else int(predict_arr)
     
-    # Logic for final result: If ML says Phish OR high-risk rules trigger
-    if predict == 0 or is_rule_phish or is_profile_phish:
+    # Logic for final result: If ML says Phish (-1) OR high-risk rules trigger
+    if predict == -1 or is_rule_phish or is_profile_phish:
         result = "Phishing"
         color = "#f43f5e"
     else:

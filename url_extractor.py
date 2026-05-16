@@ -25,9 +25,11 @@ def extract_features(url):
         if not domain:
             domain = url.split('/')[0]
         socket.inet_aton(domain)
-        ip = 1
+        # If it is an IP address, it is Phishing (-1)
+        ip = -1
     except:
-        ip = 2
+        # If it is a domain name, it is Safe (1)
+        ip = 1
 
     # 2. Long URL (ul)
     if len(url) < 54:
@@ -35,17 +37,17 @@ def extract_features(url):
     elif len(url) >= 54 and len(url) <= 75:
         ul = 0
     else:
-        ul = 2
+        ul = -1
 
     # 3. Shortening Service (at)
     if "@" in url or "bit.ly" in url or "goo.gl" in url or "tinyurl.com" in url:
-        at = 2
+        at = -1
     else:
         at = 1
 
     # 4. Prefix/Suffix (ps)
     if "-" in domain:
-        ps = 2
+        ps = -1
     else:
         ps = 1
 
@@ -56,11 +58,11 @@ def extract_features(url):
     elif dot_count == 3:
         sd = 0
     else:
-        sd = 2
+        sd = -1
 
     # 6. HTTPS Token (ht)
     if "https" in domain:
-        ht = 2
+        ht = -1
     else:
         ht = 1
 
@@ -86,7 +88,7 @@ def extract_features(url):
     try:
         w = whois.whois(domain)
         if not w.domain_name:
-            ab = 2
+            ab = -1
         else:
             ab = 1
         
@@ -95,9 +97,9 @@ def extract_features(url):
             creation_date = creation_date[0]
         if creation_date:
             age = (datetime.now() - creation_date).days
-            ad = 1 if age > 180 else 2
+            ad = 1 if age > 180 else -1
         else:
-            ad = 2
+            ad = -1
             
         dns = 1
     except:
@@ -147,7 +149,8 @@ def is_trusted_domain(host):
         "myntra.com", "google.com", "microsoft.com", "apple.com", "facebook.com",
         "instagram.com", "twitter.com", "linkedin.com", "netflix.com", "github.com",
         "flipkart.in", "snapdeal.in", "youtube.com", "youtube.co.in", "gmail.com",
-        "drive.google.com", "outlook.com", "live.com", "yahoo.com", "hot.mail", "icloud.com"
+        "drive.google.com", "outlook.com", "live.com", "yahoo.com", "hot.mail", "icloud.com",
+        "onrender.com", "render.com"
     ]
     return any(host == td or host.endswith("." + td) for td in trusted_domains)
 
@@ -239,7 +242,7 @@ def is_high_risk_feature_profile(features, url=None):
 
     ab, ad, dns, wt = features[9], features[13], features[14], features[15]
 
-    if ab == 2 and dns == 2 and wt == 2 and ad == 2:
+    if ab == -1 and dns == -1 and wt == -1 and ad == -1:
         return True
 
     return False

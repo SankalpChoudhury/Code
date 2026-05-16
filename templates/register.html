@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register | PhishGuard AI</title>
+    <title>Register | Website Phishing Detection Using ML</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style_premium.css') }}">
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -104,8 +104,8 @@
     <div class="container-premium login-container animate-fade">
         <div class="glass-card">
             <div class="login-header">
-                <h1>Join the Guard</h1>
-                <p style="color: #64748b;">Create your security analyst account</p>
+                <h1>Create Account</h1>
+                <p style="color: #64748b;">Website Phishing Detection Using ML</p>
             </div>
 
             {% with messages = get_flashed_messages(with_categories=true) %}
@@ -138,11 +138,8 @@
                 </button>
             </form>
 
-            <div class="security-footer">
-                <i data-lucide="shield" style="width: 16px;"></i>
-                Protected by PhishGuard AI Cloud Security
-            </div>
 
+            
             <div style="text-align: center; margin-top: 2rem;">
                 <p style="color: #64748b; font-size: 0.9rem;">Already have an account? <a href="{{ url_for('login') }}" style="color: var(--primary); text-decoration: none; font-weight: 600;">Sign In</a></p>
             </div>
