@@ -31,24 +31,58 @@
             };
 
             // 1. Detection Distribution
+            var safeCount = {{ safe_count | default(0) }};
+            var phishingCount = {{ phishing_count | default(0) }};
+            var hasData = (safeCount > 0 || phishingCount > 0);
+            
             var data1 = google.visualization.arrayToDataTable([
                 ['Type', 'Count'],
-                ['Safe', 450],
-                ['Phishing', 550]
+                ['Safe', hasData ? safeCount : 1],
+                ['Phishing', hasData ? phishingCount : 1]
             ]);
             var chart1 = new google.visualization.PieChart(document.getElementById('pie_chart'));
-            chart1.draw(data1, { ...commonOptions, title: 'Global Detection Distribution', pieHole: 0.4 });
+            chart1.draw(data1, { ...commonOptions, title: hasData ? 'Session Detection Distribution' : 'Session Detection (No Scans Yet)', pieHole: 0.4 });
 
-            // 2. Historical Trends
+            // 2. Scan History
             var data2 = google.visualization.arrayToDataTable([
-                ['Month', 'Safe', 'Phishing'],
-                ['Jan', 1000, 400],
-                ['Feb', 1170, 460],
-                ['Mar', 660, 1120],
-                ['Apr', 1030, 540]
+                ['Session', 'Safe', 'Phishing'],
+                ['Current', safeCount, phishingCount]
             ]);
             var chart2 = new google.visualization.ColumnChart(document.getElementById('bar_chart'));
-            chart2.draw(data2, { ...commonOptions, title: 'Monthly Threat Landscape' });
+            chart2.draw(data2, { ...commonOptions, title: 'Current Session Landscape' });
+
+            // 3. Feature Analysis for Last Scanned URL
+            {% if last_scan and last_scan.findings %}
+            var featureData = google.visualization.arrayToDataTable([
+                ['Feature', 'Risk Level'],
+                {% for finding in last_scan.findings %}
+                    ['{{ finding.feature }}', {% if finding.status == 'Danger' %}2{% elif finding.status == 'Warning' %}1{% else %}0{% endif %}],
+                {% endfor %}
+            ]);
+            var featureChart = new google.visualization.ColumnChart(document.getElementById('feature_chart'));
+            featureChart.draw(featureData, { 
+                ...commonOptions, 
+                title: 'Feature Risk Levels (0=Safe, 1=Warning, 2=Danger)',
+                colors: ['#ec4899']
+            });
+            {% endif %}
+
+            // 4. Confidence Trend
+            {% if history_urls and history_urls|length > 0 %}
+            var trendData = google.visualization.arrayToDataTable([
+                ['Scan', 'Confidence (%)'],
+                {% for item in history_urls %}
+                    ['#{{ loop.index }}', {{ item.confidence | default(0) }}],
+                {% endfor %}
+            ]);
+            var trendChart = new google.visualization.AreaChart(document.getElementById('trend_chart'));
+            trendChart.draw(trendData, {
+                ...commonOptions,
+                title: 'Confidence Score Trend',
+                colors: ['#3b82f6'],
+                vAxis: { textStyle: { color: '#64748b' }, gridlines: { color: '#334155' }, minValue: 0, maxValue: 100 }
+            });
+            {% endif %}
         }
     </script>
 </head>
@@ -70,6 +104,36 @@
             <p>Real-time visualization of global phishing trends and security intelligence.</p>
         </div>
 
+        {% set total_scans = history_urls|length if history_urls else 0 %}
+        {% set safe_count_kpi = history_urls|selectattr('result', 'equalto', 'Safe')|list|length if history_urls else 0 %}
+        {% set phish_count_kpi = history_urls|selectattr('result', 'equalto', 'Phishing')|list|length if history_urls else 0 %}
+        {% set total_conf = namespace(value=0) %}
+        {% if history_urls %}
+            {% for item in history_urls %}
+                {% set total_conf.value = total_conf.value + item.confidence|default(0) %}
+            {% endfor %}
+        {% endif %}
+        {% set avg_conf = (total_conf.value / total_scans)|round(1) if total_scans > 0 else 0 %}
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;" class="animate-fade">
+            <div class="glass-card" style="padding: 1.5rem; text-align: center; border-bottom: 4px solid #3b82f6;">
+                <h3 style="color: #94a3b8; font-size: 1rem; margin-bottom: 0.5rem;">Total Scans</h3>
+                <p style="color: #fff; font-size: 2.5rem; font-weight: bold; margin: 0;">{{ total_scans }}</p>
+            </div>
+            <div class="glass-card" style="padding: 1.5rem; text-align: center; border-bottom: 4px solid #10b981;">
+                <h3 style="color: #94a3b8; font-size: 1rem; margin-bottom: 0.5rem;">Safe Websites</h3>
+                <p style="color: #10b981; font-size: 2.5rem; font-weight: bold; margin: 0;">{{ safe_count_kpi }}</p>
+            </div>
+            <div class="glass-card" style="padding: 1.5rem; text-align: center; border-bottom: 4px solid #f43f5e;">
+                <h3 style="color: #94a3b8; font-size: 1rem; margin-bottom: 0.5rem;">Phishing Detected</h3>
+                <p style="color: #f43f5e; font-size: 2.5rem; font-weight: bold; margin: 0;">{{ phish_count_kpi }}</p>
+            </div>
+            <div class="glass-card" style="padding: 1.5rem; text-align: center; border-bottom: 4px solid #8b5cf6;">
+                <h3 style="color: #94a3b8; font-size: 1rem; margin-bottom: 0.5rem;">Avg Confidence</h3>
+                <p style="color: #8b5cf6; font-size: 2.5rem; font-weight: bold; margin: 0;">{{ avg_conf }}%</p>
+            </div>
+        </div>
+
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 2rem;">
             <div class="glass-card" style="padding: 2rem;">
                 <div id="pie_chart" style="width: 100%; height: 400px;"></div>
@@ -78,6 +142,62 @@
                 <div id="bar_chart" style="width: 100%; height: 400px;"></div>
             </div>
         </div>
+
+        {% if history_urls and history_urls|length > 0 %}
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 2rem; margin-top: 2rem;">
+            {% if last_scan and last_scan.findings %}
+            <div class="glass-card animate-fade" style="padding: 2rem;">
+                <h2 style="color: #fff; margin-bottom: 1rem; text-align: left;">Feature Analysis for: <span style="color: #94a3b8; font-weight: 400;">{{ last_scan.url }}</span></h2>
+                <div id="feature_chart" style="width: 100%; height: 400px;"></div>
+            </div>
+            {% endif %}
+            
+            <div class="glass-card animate-fade" style="padding: 2rem;">
+                <h2 style="color: #fff; margin-bottom: 1rem; text-align: left;">Session Confidence Trend</h2>
+                <div id="trend_chart" style="width: 100%; height: 400px;"></div>
+            </div>
+        </div>
+        {% elif last_scan and last_scan.findings %}
+        <div class="glass-card animate-fade" style="padding: 2rem; margin-top: 2rem;">
+            <h2 style="color: #fff; margin-bottom: 1rem; text-align: left;">Feature Analysis for: <span style="color: #94a3b8; font-weight: 400;">{{ last_scan.url }}</span></h2>
+            <div id="feature_chart" style="width: 100%; height: 400px;"></div>
+        </div>
+        {% endif %}
+
+        {% if history_urls and history_urls|length > 0 %}
+        <div class="glass-card animate-fade" style="padding: 2rem; margin-top: 2rem;">
+            <h2 style="color: #fff; margin-bottom: 1.5rem; text-align: left;">Session Scan History</h2>
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; text-align: left; border-collapse: collapse;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid #334155; color: #94a3b8;">
+                            <th style="padding: 1rem 0;">#</th>
+                            <th style="padding: 1rem 0;">Website URL</th>
+                            <th style="padding: 1rem 0;">Detection Result</th>
+                            <th style="padding: 1rem 0;">Confidence Score</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in history_urls %}
+                        <tr style="border-bottom: 1px solid rgba(51, 65, 85, 0.5);">
+                            <td style="padding: 1rem 0; color: #94a3b8;">{{ loop.index }}</td>
+                            <td style="padding: 1rem 0; color: #e2e8f0; word-break: break-all; padding-right: 1rem;">{{ item.url }}</td>
+                            <td style="padding: 1rem 0;">
+                                <span style="padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.85rem; font-weight: 600; background: {% if item.result == 'Phishing' %}rgba(244, 63, 94, 0.2){% else %}rgba(16, 185, 129, 0.2){% endif %}; color: {% if item.result == 'Phishing' %}#f43f5e{% else %}#10b981{% endif %};">
+                                    {{ item.result }}
+                                </span>
+                            </td>
+                            <td style="padding: 1rem 0; color: #e2e8f0; font-weight: bold;">
+                                {{ item.confidence | default('N/A') }}{% if item.confidence %}%{% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
     </div>
 </body>
 </html>
