@@ -75,6 +75,52 @@
                         </div>
                         {% endfor %}
                     </div>
+                    
+                    {% if whois %}
+                    <h4 style="color: #fff; margin-top: 2.5rem; margin-bottom: 1.5rem;">Domain Intelligence (WHOIS)</h4>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                        <div style="background: rgba(0,0,0,0.2); padding: 1.5rem; border-radius: 0.75rem; border-left: 4px solid #3b82f6;">
+                            <span style="color: #94a3b8; font-size: 0.8rem; text-transform: uppercase;">Domain</span>
+                            <p style="color: #fff; font-weight: 600; margin: 0.25rem 0 0 0; word-break: break-all;">{{ whois.domain }}</p>
+                        </div>
+                        <div style="background: rgba(0,0,0,0.2); padding: 1.5rem; border-radius: 0.75rem; border-left: 4px solid #8b5cf6;">
+                            <span style="color: #94a3b8; font-size: 0.8rem; text-transform: uppercase;">Creation Date</span>
+                            <p style="color: #fff; font-weight: 600; margin: 0.25rem 0 0 0;">{{ whois.creation_date }}</p>
+                        </div>
+                        <div style="background: rgba(0,0,0,0.2); padding: 1.5rem; border-radius: 0.75rem; border-left: 4px solid #10b981;">
+                            <span style="color: #94a3b8; font-size: 0.8rem; text-transform: uppercase;">Registrar</span>
+                            <p style="color: #fff; font-weight: 600; margin: 0.25rem 0 0 0;">{{ whois.registrar }}</p>
+                        </div>
+                        <div style="background: rgba(0,0,0,0.2); padding: 1.5rem; border-radius: 0.75rem; border-left: 4px solid #f59e0b;">
+                            <span style="color: #94a3b8; font-size: 0.8rem; text-transform: uppercase;">Country</span>
+                            <p style="color: #fff; font-weight: 600; margin: 0.25rem 0 0 0;">{{ whois.country }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if threat_intel %}
+                    <h4 style="color: #fff; margin-top: 2.5rem; margin-bottom: 1.5rem;">External Threat Intelligence API</h4>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                        <div style="background: rgba(0,0,0,0.2); padding: 1.5rem; border-radius: 0.75rem; border-left: 4px solid {% if threat_intel.aggregate_verdict == 'MALICIOUS' %}#f43f5e{% elif threat_intel.aggregate_verdict == 'CLEAN' %}#10b981{% else %}#64748b{% endif %};">
+                            <span style="color: #94a3b8; font-size: 0.8rem; text-transform: uppercase;">Aggregate API Verdict</span>
+                            <p style="color: {% if threat_intel.aggregate_verdict == 'MALICIOUS' %}#f43f5e{% elif threat_intel.aggregate_verdict == 'CLEAN' %}#10b981{% else %}#e2e8f0{% endif %}; font-weight: bold; margin: 0.25rem 0 0 0; font-size: 1.25rem;">
+                                {{ threat_intel.aggregate_verdict }}
+                            </p>
+                        </div>
+                        <div style="background: rgba(0,0,0,0.2); padding: 1.5rem; border-radius: 0.75rem; border-left: 4px solid {% if threat_intel.details.google.status == 'danger' %}#f43f5e{% elif threat_intel.details.google.status == 'safe' %}#10b981{% else %}#64748b{% endif %};">
+                            <span style="color: #94a3b8; font-size: 0.8rem; text-transform: uppercase;">Google Safe Browsing</span>
+                            <p style="color: #fff; font-weight: 500; margin: 0.25rem 0 0 0; font-size: 0.9rem;">
+                                {{ threat_intel.details.google.message }}
+                            </p>
+                        </div>
+                        <div style="background: rgba(0,0,0,0.2); padding: 1.5rem; border-radius: 0.75rem; border-left: 4px solid {% if threat_intel.details.virustotal.status == 'danger' %}#f43f5e{% elif threat_intel.details.virustotal.status == 'safe' %}#10b981{% else %}#64748b{% endif %};">
+                            <span style="color: #94a3b8; font-size: 0.8rem; text-transform: uppercase;">VirusTotal V3</span>
+                            <p style="color: #fff; font-weight: 500; margin: 0.25rem 0 0 0; font-size: 0.9rem;">
+                                {{ threat_intel.details.virustotal.message }}
+                            </p>
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
             {% endif %}

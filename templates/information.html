@@ -23,13 +23,14 @@
             width: 300px;
             height: 300px;
             border-radius: 50%;
-            background: conic-gradient(var(--primary) {{ acc }}%, var(--glass) 0);
+            background: conic-gradient(var(--primary) 0%, var(--glass) 0);
             margin: 3rem auto;
             display: flex;
             align-items: center;
             justify-content: center;
             position: relative;
             box-shadow: 0 0 50px rgba(99, 102, 241, 0.4);
+            transition: background 0.1s linear;
         }
         .acc-circle::before {
             content: "";
@@ -52,7 +53,47 @@
         @keyframes fillBar {
             from { width: 0; }
         }
+        @media print {
+            body { background: white !important; color: black !important; overflow: visible !important; }
+            .bg-overlay { display: none !important; }
+            .navbar-premium { display: none !important; }
+            .premium-btn, .hide-on-print { display: none !important; }
+            .glass-card { background: white !important; box-shadow: none !important; border: 1px solid #ccc !important; color: black !important; }
+            * { text-shadow: none !important; -webkit-print-color-adjust: exact !important; color-adjust: exact !important; }
+            h1, h2, h3, p, span, strong { color: black !important; }
+        }
     </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const targetAcc = parseFloat("{{ acc }}") || 0;
+            const circle = document.querySelector('.acc-circle');
+            const valueDisplay = document.querySelector('.acc-value-num');
+            
+            let startTimestamp = null;
+            const duration = 2000; // 2 seconds
+
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                
+                // Ease out cubic
+                const easeOut = 1 - Math.pow(1 - progress, 3);
+                const current = easeOut * targetAcc;
+                
+                circle.style.background = `conic-gradient(var(--primary) ${current}%, var(--glass) 0)`;
+                valueDisplay.textContent = current.toFixed(1);
+                
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                } else {
+                    valueDisplay.textContent = targetAcc.toFixed(1);
+                    circle.style.background = `conic-gradient(var(--primary) ${targetAcc}%, var(--glass) 0)`;
+                }
+            };
+            
+            window.requestAnimationFrame(step);
+        });
+    </script>
 </head>
 <body>
     <div class="bg-overlay"></div>
@@ -78,7 +119,7 @@
             </p>
 
             <div class="acc-circle">
-                <div class="acc-value">{{ acc }}<span>%</span></div>
+                <div class="acc-value"><span class="acc-value-num">{{ acc }}</span><span>%</span></div>
             </div>
 
             <div class="form-grid" style="margin-top: 4rem; text-align: left;">
@@ -136,8 +177,12 @@
             </div>
 
             {% if last_scan and last_scan.url != "Manual Entry" and last_scan.findings %}
-            <div style="margin-top: 4rem; text-align: left;" class="animate-fade">
-                <h2 style="color: #fff; border-bottom: 1px solid #334155; padding-bottom: 1rem; margin-bottom: 1.5rem;">Latest Scan Details</h2>
+            <div style="margin-top: 4rem; text-align: left;" class="animate-fade" id="report-section">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 1rem; margin-bottom: 1.5rem;">
+                    <h2 style="color: #fff; margin: 0;">Latest Scan Details</h2>
+                    <button onclick="window.print()" class="premium-btn hide-on-print" style="padding: 0.5rem 1rem; font-size: 0.9rem; margin: 0; background: #3b82f6;">Download PDF Report</button>
+                </div>
+                
                 <div style="background: rgba(30, 41, 59, 0.5); padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; border-left: 4px solid {% if last_scan.result == 'Phishing' %}#f43f5e{% else %}#10b981{% endif %};">
                     <p style="color: #94a3b8; margin: 0 0 0.5rem 0; font-size: 0.9rem;">SCANNED URL</p>
                     <p style="color: #fff; margin: 0 0 1rem 0; font-size: 1.1rem; word-break: break-all;">{{ last_scan.url }}</p>
@@ -164,10 +209,56 @@
                     </div>
                     {% endfor %}
                 </div>
+
+                {% if last_scan.whois %}
+                <h3 style="color: #fff; margin-top: 2rem; margin-bottom: 1rem;">Domain Intelligence (WHOIS)</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                    <div style="background: rgba(30, 41, 59, 0.5); padding: 1.5rem; border-radius: 8px; border-left: 4px solid #3b82f6;">
+                        <span style="color: #94a3b8; font-size: 0.8rem; text-transform: uppercase;">Domain</span>
+                        <p style="color: #fff; font-weight: 600; margin: 0.25rem 0 0 0; word-break: break-all;">{{ last_scan.whois.domain }}</p>
+                    </div>
+                    <div style="background: rgba(30, 41, 59, 0.5); padding: 1.5rem; border-radius: 8px; border-left: 4px solid #8b5cf6;">
+                        <span style="color: #94a3b8; font-size: 0.8rem; text-transform: uppercase;">Creation Date</span>
+                        <p style="color: #fff; font-weight: 600; margin: 0.25rem 0 0 0;">{{ last_scan.whois.creation_date }}</p>
+                    </div>
+                    <div style="background: rgba(30, 41, 59, 0.5); padding: 1.5rem; border-radius: 8px; border-left: 4px solid #10b981;">
+                        <span style="color: #94a3b8; font-size: 0.8rem; text-transform: uppercase;">Registrar</span>
+                        <p style="color: #fff; font-weight: 600; margin: 0.25rem 0 0 0;">{{ last_scan.whois.registrar }}</p>
+                    </div>
+                    <div style="background: rgba(30, 41, 59, 0.5); padding: 1.5rem; border-radius: 8px; border-left: 4px solid #f59e0b;">
+                        <span style="color: #94a3b8; font-size: 0.8rem; text-transform: uppercase;">Country</span>
+                        <p style="color: #fff; font-weight: 600; margin: 0.25rem 0 0 0;">{{ last_scan.whois.country }}</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if last_scan.threat_intel %}
+                <h3 style="color: #fff; margin-top: 2rem; margin-bottom: 1rem;">External Threat Intelligence API</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                    <div style="background: rgba(30, 41, 59, 0.5); padding: 1.5rem; border-radius: 8px; border-left: 4px solid {% if last_scan.threat_intel.aggregate_verdict == 'MALICIOUS' %}#f43f5e{% elif last_scan.threat_intel.aggregate_verdict == 'CLEAN' %}#10b981{% else %}#64748b{% endif %};">
+                        <span style="color: #94a3b8; font-size: 0.8rem; text-transform: uppercase;">Aggregate API Verdict</span>
+                        <p style="color: {% if last_scan.threat_intel.aggregate_verdict == 'MALICIOUS' %}#f43f5e{% elif last_scan.threat_intel.aggregate_verdict == 'CLEAN' %}#10b981{% else %}#e2e8f0{% endif %}; font-weight: bold; margin: 0.25rem 0 0 0; font-size: 1.25rem;">
+                            {{ last_scan.threat_intel.aggregate_verdict }}
+                        </p>
+                    </div>
+                    <div style="background: rgba(30, 41, 59, 0.5); padding: 1.5rem; border-radius: 8px; border-left: 4px solid {% if last_scan.threat_intel.details.google.status == 'danger' %}#f43f5e{% elif last_scan.threat_intel.details.google.status == 'safe' %}#10b981{% else %}#64748b{% endif %};">
+                        <span style="color: #94a3b8; font-size: 0.8rem; text-transform: uppercase;">Google Safe Browsing</span>
+                        <p style="color: #fff; font-weight: 500; margin: 0.25rem 0 0 0; font-size: 0.9rem;">
+                            {{ last_scan.threat_intel.details.google.message }}
+                        </p>
+                    </div>
+                    <div style="background: rgba(30, 41, 59, 0.5); padding: 1.5rem; border-radius: 8px; border-left: 4px solid {% if last_scan.threat_intel.details.virustotal.status == 'danger' %}#f43f5e{% elif last_scan.threat_intel.details.virustotal.status == 'safe' %}#10b981{% else %}#64748b{% endif %};">
+                        <span style="color: #94a3b8; font-size: 0.8rem; text-transform: uppercase;">VirusTotal V3</span>
+                        <p style="color: #fff; font-weight: 500; margin: 0.25rem 0 0 0; font-size: 0.9rem;">
+                            {{ last_scan.threat_intel.details.virustotal.message }}
+                        </p>
+                    </div>
+                </div>
+                {% endif %}
             </div>
             {% endif %}
 
-            <div style="margin-top: 4rem; text-align: left;" class="animate-fade">
+            <div style="margin-top: 4rem; text-align: left;" class="animate-fade hide-on-print">
                 <h3 style="color: #fff; border-bottom: 1px solid #334155; padding-bottom: 1rem; margin-bottom: 1.5rem;">Heuristic Indicator Dictionary</h3>
                 <p style="color: #94a3b8; margin-bottom: 2rem;">Understanding the 16 core features our Random Forest model analyzes to detect malicious patterns.</p>
                 

@@ -82,6 +82,45 @@
             }
         }
     </script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+      google.charts.load('current', {'packages':['corechart']});
+      {% if model_history and model_history|length > 0 %}
+      google.charts.setOnLoadCallback(drawChart);
+
+      function drawChart() {
+        var data = new google.visualization.DataTable();
+        data.addColumn('string', 'Time');
+        data.addColumn('number', 'Accuracy %');
+
+        data.addRows([
+          {% for row in model_history %}
+            ['{{ row.timestamp.split(" ")[0] }}', {{ row.accuracy }}],
+          {% endfor %}
+        ]);
+
+        var options = {
+          title: 'Retraining Accuracy Over Time',
+          titleTextStyle: { color: '#fff' },
+          curveType: 'function',
+          legend: { position: 'none' },
+          backgroundColor: 'transparent',
+          colors: ['#10b981'],
+          vAxis: { 
+            textStyle: { color: '#94a3b8' },
+            gridlines: { color: 'rgba(255,255,255,0.1)' }
+          },
+          hAxis: { 
+            textStyle: { color: '#94a3b8' }
+          },
+          chartArea: { width: '85%', height: '70%' }
+        };
+
+        var chart = new google.visualization.LineChart(document.getElementById('history_chart'));
+        chart.draw(data, options);
+      }
+      {% endif %}
+    </script>
 </head>
 <body>
     <div class="bg-overlay"></div>
@@ -121,6 +160,13 @@
                     <li>Max file size: 50MB.</li>
                 </ul>
             </div>
+
+            {% if model_history and model_history|length > 0 %}
+            <div style="margin-top: 3rem; text-align: left;">
+                <h3 style="color: #fff; margin-bottom: 1rem;">Model Performance History</h3>
+                <div id="history_chart" style="width: 100%; height: 300px; background: rgba(0,0,0,0.2); border-radius: 1rem; padding: 1rem;"></div>
+            </div>
+            {% endif %}
         </div>
     </div>
 

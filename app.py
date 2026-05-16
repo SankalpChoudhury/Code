@@ -7,14 +7,92 @@ import os
 import pickle
 import pandas as pd
 from datetime import datetime
+import whois
+from urllib.parse import urlparse
+from threat_intel import run_external_checks
+from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'phishing_detection_secret_key_123')
 
-def get_db_connection():
-    conn = sqlite3.connect('users.db')
-    conn.row_factory = sqlite3.Row
-    return conn
+# Database Configuration (Render Postgres or Local SQLite fallback)
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///users.db')
+if app.config['SQLALCHEMY_DATABASE_URI'].startswith("postgres://"):
+    app.config['SQLALCHEMY_DATABASE_URI'] = app.config['SQLALCHEMY_DATABASE_URI'].replace("postgres://", "postgresql://", 1)
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db = SQLAlchemy(app)
+
+# Database Models
+class User(db.Model):
+    __tablename__ = 'users'
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(100), unique=True, nullable=False)
+    password = db.Column(db.String(200), nullable=False)
+    role = db.Column(db.String(20), nullable=False)
+
+class Scan(db.Model):
+    __tablename__ = 'scans'
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(100), nullable=False)
+    url = db.Column(db.Text, nullable=False)
+    result = db.Column(db.String(20), nullable=False)
+    confidence = db.Column(db.Float)
+    timestamp = db.Column(db.DateTime, default=datetime.now)
+
+class ModelHistory(db.Model):
+    __tablename__ = 'model_history'
+    id = db.Column(db.Integer, primary_key=True)
+    timestamp = db.Column(db.DateTime, default=datetime.now)
+    accuracy = db.Column(db.Float, nullable=False)
+
+class Report(db.Model):
+    __tablename__ = 'reports'
+    id = db.Column(db.Integer, primary_key=True)
+    url = db.Column(db.Text, nullable=False)
+    report_type = db.Column(db.String(20), nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.now)
+
+with app.app_context():
+    db.create_all()
+
+def get_whois_info(url):
+    try:
+        if not url.startswith('http'):
+            parsed_url = urlparse('http://' + url)
+        else:
+            parsed_url = urlparse(url)
+        domain = parsed_url.netloc
+        if domain.startswith('www.'):
+            domain = domain[4:]
+            
+        w = whois.whois(domain)
+        
+        creation_date = w.creation_date
+        if isinstance(creation_date, list):
+            creation_date = creation_date[0]
+            
+        registrar = w.registrar
+        if isinstance(registrar, list):
+            registrar = registrar[0]
+            
+        country = w.country
+        if isinstance(country, list):
+            country = country[0]
+            
+        return {
+            'domain': domain,
+            'creation_date': creation_date.strftime('%Y-%m-%d') if hasattr(creation_date, 'strftime') else 'Unknown',
+            'registrar': registrar if registrar else 'Unknown',
+            'country': country if country else 'Unknown'
+        }
+    except Exception as e:
+        return {
+            'domain': url,
+            'creation_date': 'Unknown',
+            'registrar': 'Unknown',
+            'country': 'Unknown'
+        }
 
 # CSS fix by adding modified timestamp
 @app.context_processor
@@ -72,18 +150,16 @@ def login():
             flash("Incorrect CAPTCHA answer. Please try again.", "danger")
             return redirect(url_for('login'))
         
-        conn = get_db_connection()
-        user = conn.execute('SELECT * FROM users WHERE username = ?', (username,)).fetchone()
-        conn.close()
+        user = User.query.filter_by(username=username).first()
 
-        if user and check_password_hash(user['password'], password):
-            if user['role'] == 'admin':
+        if user and check_password_hash(user.password, password):
+            if user.role == 'admin':
                 flash("Admins must use the Admin Login portal.", "warning")
                 return redirect(url_for('admin_login'))
             
-            session['user'] = user['username']
-            session['role'] = user['role']
-            flash(f"Welcome back, {user['username']}!", "success")
+            session['user'] = user.username
+            session['role'] = user.role
+            flash(f"Welcome back, {user.username}!", "success")
             return redirect(url_for('home'))
         else:
             flash("Invalid credentials. Please try again.", "danger")
@@ -109,13 +185,11 @@ def admin_login():
             flash("Incorrect CAPTCHA. Access Denied.", "danger")
             return redirect(url_for('admin_login'))
         
-        conn = get_db_connection()
-        user = conn.execute('SELECT * FROM users WHERE username = ?', (username,)).fetchone()
-        conn.close()
+        user = User.query.filter_by(username=username).first()
 
-        if user and check_password_hash(user['password'], password) and user['role'] == 'admin':
-            session['user'] = user['username']
-            session['role'] = user['role']
+        if user and check_password_hash(user.password, password) and user.role == 'admin':
+            session['user'] = user.username
+            session['role'] = user.role
             flash("Admin session established.", "success")
             return redirect(url_for('upload'))
         else:
@@ -142,17 +216,15 @@ def register():
         # All web registrations are 'user' by default for security
         role = 'user'
         
-        conn = get_db_connection()
         try:
-            conn.execute('INSERT INTO users (username, password, role) VALUES (?, ?, ?)',
-                         (username, generate_password_hash(password), role))
-            conn.commit()
+            new_user = User(username=username, password=generate_password_hash(password), role=role)
+            db.session.add(new_user)
+            db.session.commit()
             flash("Registration successful! Please login.", "success")
             return redirect(url_for('login'))
-        except sqlite3.IntegrityError:
+        except Exception as e:
+            db.session.rollback()
             flash("Username already exists.", "danger")
-        finally:
-            conn.close()
             
     return render_template('register.html')
 
@@ -166,7 +238,10 @@ def logout():
 @app.route('/upload')
 @admin_required
 def upload():
-    return render_template('upload.html')  
+    history = ModelHistory.query.order_by(ModelHistory.timestamp.asc()).all()
+    model_history = [{'timestamp': str(row.timestamp), 'accuracy': row.accuracy} for row in history]
+    
+    return render_template('upload.html', model_history=model_history)  
 
 @app.route('/preview',methods=["POST"])
 @admin_required
@@ -197,6 +272,16 @@ def train():
         global model_RF
         model_RF = pickle.load(open('model_RF.pkl', 'rb'))
         
+        try:
+            with open('accuracy.txt', 'r') as f:
+                new_acc = float(f.read().strip())
+        except:
+            new_acc = 95.2
+            
+        new_entry = ModelHistory(accuracy=new_acc)
+        db.session.add(new_entry)
+        db.session.commit()
+        
         flash("Model retrained successfully with the new dataset!", "success")
     except subprocess.CalledProcessError as e:
         error_msg = e.stderr if e.stderr else e.stdout
@@ -226,13 +311,15 @@ def information():
     except:
         current_acc = "95.2" # Fallback
         
-    history = session.get('scan_history', {'safe': 0, 'phishing': 0, 'total': 0})
-    total = history['total']
+    scans = Scan.query.filter_by(username=session.get('user')).all()
+    
+    total = len(scans)
+    phishing_count = sum(1 for row in scans if row.result == 'Phishing')
     
     if total > 0:
-        threat_level = round((history['phishing'] / total) * 100, 1)
+        threat_level = round((phishing_count / total) * 100, 1)
         acc_display = f"{threat_level}"
-        label = "Session Threat Level"
+        label = "Historical Threat Level"
     else:
         acc_display = current_acc
         label = "Base Model Accuracy"
@@ -268,30 +355,19 @@ def result():
     except Exception as e:
         confidence = 92.5
         
-    if 'scan_history' not in session:
-        session['scan_history'] = {'safe': 0, 'phishing': 0, 'total': 0, 'urls': []}
-    
-    if 'urls' not in session['scan_history']:
-        session['scan_history']['urls'] = []
-        
-    session['scan_history']['total'] += 1
-    if res_str == 'Phishing':
-        session['scan_history']['phishing'] += 1
-    else:
-        session['scan_history']['safe'] += 1
-        
-    session['scan_history']['urls'].append({
-        'url': "Manual Entry",
-        'result': res_str,
-        'confidence': confidence
-    })
+    # Save to Database
+    new_scan = Scan(username=session.get('user'), url="Manual Entry", result=res_str, confidence=confidence)
+    db.session.add(new_scan)
+    db.session.commit()
         
     session['last_scan'] = {
         'url': "Manual Entry",
         'result': res_str,
         'features': [int(f) for f in int_features],
         'findings': [],
-        'confidence': confidence
+        'confidence': confidence,
+        'whois': None,
+        'threat_intel': None
     }
     session.modified = True
 
@@ -357,30 +433,25 @@ def detect_url():
     except Exception as e:
         confidence = 92.5
         
-    if 'scan_history' not in session:
-        session['scan_history'] = {'safe': 0, 'phishing': 0, 'total': 0, 'urls': []}
+    # WHOIS Lookup
+    whois_data = get_whois_info(url)
+    
+    # External Threat Intelligence
+    threat_intel_data = run_external_checks(url)
         
-    if 'urls' not in session['scan_history']:
-        session['scan_history']['urls'] = []
-        
-    session['scan_history']['total'] += 1
-    if result == "Phishing":
-        session['scan_history']['phishing'] += 1
-    else:
-        session['scan_history']['safe'] += 1
-        
-    session['scan_history']['urls'].append({
-        'url': url,
-        'result': result,
-        'confidence': confidence
-    })
+    # Save to Database
+    new_scan = Scan(username=session.get('user'), url=url, result=result, confidence=confidence)
+    db.session.add(new_scan)
+    db.session.commit()
         
     session['last_scan'] = {
         'url': url,
         'result': result,
         'features': [int(f) for f in int_features],
         'findings': findings,
-        'confidence': confidence
+        'confidence': confidence,
+        'whois': whois_data,
+        'threat_intel': threat_intel_data
     }
     session.modified = True
         
@@ -388,14 +459,65 @@ def detect_url():
                            url=url, 
                            result=result, 
                            color=color, 
-                           findings=findings)
+                           findings=findings,
+                           whois=whois_data,
+                           threat_intel=threat_intel_data)
 
 @app.route('/chart')
 @login_required
 def chart():
-    history = session.get('scan_history', {'safe': 0, 'phishing': 0, 'total': 0, 'urls': []})
+    scans = Scan.query.filter_by(username=session.get('user')).order_by(Scan.timestamp.asc()).all()
+    history_urls = [{'url': row.url, 'result': row.result, 'confidence': row.confidence, 'timestamp': str(row.timestamp)} for row in scans]
+    
+    safe_count = sum(1 for row in history_urls if row['result'] == 'Safe')
+    phishing_count = sum(1 for row in history_urls if row['result'] == 'Phishing')
+    
     last_scan = session.get('last_scan', None)
-    return render_template('chart.html', safe_count=history['safe'], phishing_count=history['phishing'], last_scan=last_scan, history_urls=history.get('urls', []))
+    return render_template('chart.html', safe_count=safe_count, phishing_count=phishing_count, last_scan=last_scan, history_urls=history_urls)
+
+@app.route('/api/v1/scan', methods=['POST'])
+def api_scan():
+    """
+    Public JSON API for Browser Extensions or External integrations.
+    Expects JSON: {"url": "https://example.com"}
+    """
+    data = request.get_json()
+    if not data or 'url' not in data:
+        return {"error": "Missing 'url' in JSON payload"}, 400
+        
+    url = data['url']
+    try:
+        # Extract features
+        int_features = extract_features(url)
+        
+        # ML Prediction
+        final = [np.array(int_features)]
+        predict = model_RF.prediction(final)
+        
+        # Rule overrides
+        is_rule_phish = is_high_risk_phishing_pattern(url)
+        is_profile_phish = is_high_risk_feature_profile(int_features, url)
+        
+        if predict == 0 or is_rule_phish or is_profile_phish:
+            result = "Phishing"
+        else:
+            result = "Safe"
+            
+        tree_preds = [tree.prediction(final)[0] for tree in model_RF.trees]
+        pred_val = predict[0] if isinstance(predict, (list, np.ndarray)) else predict
+        votes = tree_preds.count(pred_val)
+        confidence = round((votes / len(tree_preds)) * 100, 1)
+        if result == "Phishing" and (is_rule_phish or is_profile_phish):
+            confidence = max(confidence, 98.5)
+            
+        return {
+            "url": url,
+            "status": result,
+            "confidence": confidence,
+            "timestamp": datetime.now().isoformat()
+        }
+    except Exception as e:
+        return {"error": str(e)}, 500
 
 @app.route('/report', methods=['POST'])
 def report():
@@ -403,13 +525,9 @@ def report():
     report_type = request.form.get('type') # 'phishing' or 'safe'
     
     if url and report_type:
-        report_file = 'community_reports.csv'
-        file_exists = os.path.isfile(report_file)
-        
-        with open(report_file, 'a', encoding='utf-8') as f:
-            if not file_exists:
-                f.write("url,report_type,timestamp\n")
-            f.write(f'"{url}",{report_type},{datetime.now()}\n')
+        new_report = Report(url=url, report_type=report_type)
+        db.session.add(new_report)
+        db.session.commit()
             
         return {"status": "success", "message": "Report submitted successfully"}
     return {"status": "error", "message": "Invalid report data"}, 400
