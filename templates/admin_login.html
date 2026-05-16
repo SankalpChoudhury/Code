@@ -6,6 +6,7 @@
     <title>Admin Portal | PhishGuard AI</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style_premium.css') }}">
+    <script src="https://unpkg.com/lucide@latest"></script>
     <script>
         document.addEventListener('contextmenu', event => event.preventDefault());
         document.onkeydown = function(e) {
@@ -43,44 +44,67 @@
         }
         .login-input {
             width: 100%;
-            background: rgba(0, 0, 0, 0.2);
+            background: rgba(15, 23, 42, 0.6);
             border: 1px solid var(--glass-border);
-            border-radius: 1rem;
-            padding: 1.25rem;
+            border-radius: 0.75rem;
+            padding: 1rem 1rem 1rem 3rem;
             color: #fff;
             outline: none;
             box-sizing: border-box;
-            transition: 0.3s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .login-input:focus {
             border-color: var(--primary);
+            background: rgba(15, 23, 42, 0.8);
+            box-shadow: 0 0 0 4px rgba(244, 63, 94, 0.1);
         }
-        .login-btn {
-            width: 100%;
-            margin-top: 1rem;
-            background: var(--primary);
+        .input-icon-wrapper {
+            position: relative;
+            margin-bottom: 1.25rem;
         }
-        .alert {
-            padding: 1rem;
+        .input-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #64748b;
+            width: 18px;
+            height: 18px;
+            pointer-events: none;
+        }
+        .password-toggle {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #64748b;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+            display: flex;
+            align-items: center;
+        }
+        .captcha-box {
+            background: rgba(244, 63, 94, 0.05);
+            border: 1px solid rgba(244, 63, 94, 0.2);
             border-radius: 0.75rem;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 1.5rem;
-            font-size: 0.9rem;
-            text-align: center;
         }
-        .alert-danger {
-            background: rgba(239, 68, 68, 0.1);
-            color: #ef4444;
-            border: 1px solid rgba(239, 68, 68, 0.2);
-        }
-        .alert-warning {
-            background: rgba(245, 158, 11, 0.1);
-            color: #f59e0b;
-            border: 1px solid rgba(245, 158, 11, 0.2);
-        }
-        .alert-success {
-            background: rgba(34, 197, 94, 0.1);
-            color: #22c55e;
-            border: 1px solid rgba(34, 197, 94, 0.2);
+        .security-footer {
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--glass-border);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+            color: #64748b;
+            font-size: 0.8rem;
         }
     </style>
 </head>
@@ -109,29 +133,72 @@
             </div>
             {% endif %}
 
-            <form action="{{ url_for('admin_login') }}" method="POST">
-                <div class="form-group">
-                    <label>Username</label>
-                    <input type="text" name="username" class="login-input" placeholder="" required autocomplete="off">
+            <form action="{{ url_for('admin_login') }}" method="POST" id="adminForm">
+                <div class="input-icon-wrapper">
+                    <input type="text" name="username" class="login-input" placeholder="Admin Username" required autocomplete="off">
+                    <i data-lucide="shield-check" class="input-icon"></i>
                 </div>
 
-                <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" name="password" class="login-input" placeholder="" required autocomplete="off">
+                <div class="input-icon-wrapper">
+                    <input type="password" name="password" id="passwordInput" class="login-input" placeholder="Admin Password" required>
+                    <i data-lucide="key-round" class="input-icon"></i>
+                    <button type="button" class="password-toggle" onclick="togglePassword()">
+                        <i data-lucide="eye" id="eyeIcon"></i>
+                    </button>
                 </div>
 
-                <div class="form-group">
-                    <label>Admin Security Verify: {{ captcha_text }} = ?</label>
-                    <input type="number" name="captcha_answer" class="login-input" placeholder="Result" required autocomplete="off">
+                <div class="captcha-box">
+                    <div>
+                        <span style="color: #94a3b8; font-size: 0.75rem; display: block; text-transform: uppercase;">Admin Verification</span>
+                        <span style="font-weight: 700; color: var(--primary); font-size: 1.1rem;">{{ captcha_text }}</span>
+                    </div>
+                    <input type="number" name="captcha_answer" class="login-input" style="width: 100px; padding-left: 1rem;" placeholder="?" required>
                 </div>
 
-                <button type="submit" class="premium-btn login-btn" style="background: var(--primary);">AUTHORIZE ACCESS</button>
+                <button type="submit" class="premium-btn login-btn" id="submitBtn" style="background: var(--primary);">
+                    <span id="btnText">AUTHORIZE SESSION</span>
+                </button>
             </form>
+
+            <div class="security-footer">
+                <i data-lucide="lock" style="width: 16px;"></i>
+                RESTRICTED AREA: Unauthorized Access Prohibited
+            </div>
 
             <div style="text-align: center; margin-top: 2rem;">
                 <a href="{{ url_for('login') }}" style="color: #64748b; text-decoration: none; font-size: 0.9rem;">&larr; Switch to User Login</a>
             </div>
         </div>
     </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        function togglePassword() {
+            const input = document.getElementById('passwordInput');
+            const icon = document.getElementById('eyeIcon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.setAttribute('data-lucide', 'eye-off');
+            } else {
+                input.type = 'password';
+                icon.setAttribute('data-lucide', 'eye');
+            }
+            lucide.createIcons();
+        }
+
+        document.getElementById('adminForm').addEventListener('submit', function() {
+            const btn = document.getElementById('submitBtn');
+            const btnText = document.getElementById('btnText');
+            btn.disabled = true;
+            btnText.innerHTML = '<i data-lucide="loader-2" class="animate-spin" style="margin-right: 8px; display: inline-block; vertical-align: middle;"></i> AUTHENTICATING...';
+            lucide.createIcons();
+        });
+    </script>
+    <style>
+        .animate-spin { animation: spin 1s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    </style>
 </body>
 </html>

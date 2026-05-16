@@ -157,12 +157,18 @@ def login():
                 flash("Admins must use the Admin Login portal.", "warning")
                 return redirect(url_for('admin_login'))
             
+            session.pop('failed_login_attempts', None)
             session['user'] = user.username
             session['role'] = user.role
             flash(f"Welcome back, {user.username}!", "success")
             return redirect(url_for('home'))
         else:
-            flash("Invalid credentials. Please try again.", "danger")
+            attempts = session.get('failed_login_attempts', 0) + 1
+            session['failed_login_attempts'] = attempts
+            if attempts >= 3:
+                flash("Security Alert: Multiple failed login attempts. Account protection active.", "warning")
+            else:
+                flash("Authentication failed. Please check your username and password.", "danger")
             
     # Generate new Captcha for GET request
     num1 = random.randint(1, 10)
@@ -188,12 +194,18 @@ def admin_login():
         user = User.query.filter_by(username=username).first()
 
         if user and check_password_hash(user.password, password) and user.role == 'admin':
+            session.pop('failed_admin_attempts', None)
             session['user'] = user.username
             session['role'] = user.role
             flash("Admin session established.", "success")
             return redirect(url_for('upload'))
         else:
-            flash("Invalid admin credentials.", "danger")
+            attempts = session.get('failed_admin_attempts', 0) + 1
+            session['failed_admin_attempts'] = attempts
+            if attempts >= 2:
+                flash("Critical: Unauthorized Admin access attempt logged.", "danger")
+            else:
+                flash("Invalid administrator credentials.", "danger")
             
     # Generate new Captcha for GET request
     num1 = random.randint(5, 15)

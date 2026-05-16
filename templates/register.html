@@ -6,6 +6,7 @@
     <title>Register | PhishGuard AI</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style_premium.css') }}">
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         .login-container {
             max-width: 450px;
@@ -30,43 +31,70 @@
         }
         .login-input {
             width: 100%;
-            background: rgba(0, 0, 0, 0.2);
+            background: rgba(15, 23, 42, 0.6);
             border: 1px solid var(--glass-border);
-            border-radius: 1rem;
-            padding: 1.25rem;
+            border-radius: 0.75rem;
+            padding: 1rem 1rem 1rem 3rem;
             color: #fff;
             outline: none;
             box-sizing: border-box;
-            transition: 0.3s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .login-input:focus {
             border-color: var(--primary);
+            background: rgba(15, 23, 42, 0.8);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
         }
-        .login-btn {
-            width: 100%;
-            margin-top: 1rem;
+        .input-icon-wrapper {
+            position: relative;
+            margin-bottom: 1.25rem;
         }
-        .alert {
-            padding: 1rem;
-            border-radius: 0.75rem;
-            margin-bottom: 1.5rem;
-            font-size: 0.9rem;
-            text-align: center;
+        .input-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #64748b;
+            width: 18px;
+            height: 18px;
+            pointer-events: none;
         }
-        .alert-danger {
-            background: rgba(239, 68, 68, 0.1);
-            color: #ef4444;
-            border: 1px solid rgba(239, 68, 68, 0.2);
+        .password-toggle {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #64748b;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+            display: flex;
+            align-items: center;
         }
-        .alert-warning {
-            background: rgba(245, 158, 11, 0.1);
-            color: #f59e0b;
-            border: 1px solid rgba(245, 158, 11, 0.2);
+        .strength-meter {
+            height: 4px;
+            background: rgba(255,255,255,0.1);
+            margin-top: -0.75rem;
+            margin-bottom: 1.25rem;
+            border-radius: 2px;
+            overflow: hidden;
         }
-        .alert-success {
-            background: rgba(34, 197, 94, 0.1);
-            color: #22c55e;
-            border: 1px solid rgba(34, 197, 94, 0.2);
+        .strength-bar {
+            height: 100%;
+            width: 0%;
+            transition: 0.3s;
+        }
+        .security-footer {
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--glass-border);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+            color: #64748b;
+            font-size: 0.8rem;
         }
     </style>
 </head>
@@ -88,19 +116,32 @@
               {% endif %}
             {% endwith %}
 
-            <form action="{{ url_for('register') }}" method="POST">
-                <div class="form-group">
-                    <label>Username</label>
-                    <input type="text" name="username" class="login-input" placeholder="Choose a username" required>
+            <form action="{{ url_for('register') }}" method="POST" id="registerForm">
+                <div class="input-icon-wrapper">
+                    <input type="text" name="username" class="login-input" placeholder="Choose a username" required autocomplete="off">
+                    <i data-lucide="user" class="input-icon"></i>
                 </div>
 
-                <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" name="password" class="login-input" placeholder="Create a password" required>
+                <div class="input-icon-wrapper">
+                    <input type="password" name="password" id="passwordInput" class="login-input" placeholder="Create a password" required>
+                    <i data-lucide="lock" class="input-icon"></i>
+                    <button type="button" class="password-toggle" onclick="togglePassword()">
+                        <i data-lucide="eye" id="eyeIcon"></i>
+                    </button>
+                </div>
+                <div class="strength-meter">
+                    <div id="strengthBar" class="strength-bar"></div>
                 </div>
 
-                <button type="submit" class="premium-btn login-btn">CREATE ACCOUNT</button>
+                <button type="submit" class="premium-btn login-btn" id="submitBtn">
+                    <span id="btnText">INITIALIZE ACCOUNT</span>
+                </button>
             </form>
+
+            <div class="security-footer">
+                <i data-lucide="shield" style="width: 16px;"></i>
+                Protected by PhishGuard AI Cloud Security
+            </div>
 
             <div style="text-align: center; margin-top: 2rem;">
                 <p style="color: #64748b; font-size: 0.9rem;">Already have an account? <a href="{{ url_for('login') }}" style="color: var(--primary); text-decoration: none; font-weight: 600;">Sign In</a></p>
@@ -111,5 +152,53 @@
             </div>
         </div>
     </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        function togglePassword() {
+            const input = document.getElementById('passwordInput');
+            const icon = document.getElementById('eyeIcon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.setAttribute('data-lucide', 'eye-off');
+            } else {
+                input.type = 'password';
+                icon.setAttribute('data-lucide', 'eye');
+            }
+            lucide.createIcons();
+        }
+
+        const passwordInput = document.getElementById('passwordInput');
+        const strengthBar = document.getElementById('strengthBar');
+
+        passwordInput.addEventListener('input', function() {
+            const val = passwordInput.value;
+            let strength = 0;
+            if (val.length > 5) strength += 25;
+            if (val.match(/[A-Z]/)) strength += 25;
+            if (val.match(/[0-9]/)) strength += 25;
+            if (val.match(/[^A-Za-z0-9]/)) strength += 25;
+
+            strengthBar.style.width = strength + '%';
+            if (strength <= 25) strengthBar.style.background = '#ef4444';
+            else if (strength <= 50) strengthBar.style.background = '#f59e0b';
+            else if (strength <= 75) strengthBar.style.background = '#3b82f6';
+            else strengthBar.style.background = '#10b981';
+        });
+
+        document.getElementById('registerForm').addEventListener('submit', function() {
+            const btn = document.getElementById('submitBtn');
+            const btnText = document.getElementById('btnText');
+            btn.disabled = true;
+            btnText.innerHTML = '<i data-lucide="loader-2" class="animate-spin" style="margin-right: 8px; display: inline-block; vertical-align: middle;"></i> SECURING...';
+            lucide.createIcons();
+        });
+    </script>
+    <style>
+        .animate-spin { animation: spin 1s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    </style>
 </body>
 </html>
