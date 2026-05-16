@@ -6,6 +6,7 @@
     <title>Website Phishing Detection Using ML</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style_premium.css') }}">
+    <script src="https://unpkg.com/lucide@latest"></script>
     <script>
         document.addEventListener('contextmenu', event => event.preventDefault());
         document.addEventListener('keydown', function(e) {
@@ -16,19 +17,85 @@
     </script>
     <style>
         .hero-section {
-            height: calc(100vh - 100px);
+            min-height: 80vh;
             display: flex;
             align-items: center;
             justify-content: center;
             text-align: center;
+            padding: 4rem 0;
         }
         .hero-content h1 {
-            font-size: 4.5rem;
+            font-size: clamp(2.5rem, 8vw, 4.5rem);
             line-height: 1.1;
             margin-bottom: 2rem;
             background: linear-gradient(to bottom, #fff, #94a3b8);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            font-weight: 800;
+        }
+        .stats-bar {
+            background: rgba(0, 0, 0, 0.3);
+            border-top: 1px solid var(--glass-border);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 3rem 0;
+            margin: 4rem 0;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            text-align: center;
+        }
+        .stat-item h2 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+        .stat-item p {
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 4rem 0;
+        }
+        .feature-card {
+            padding: 3rem;
+            text-align: left;
+            position: relative;
+            overflow: hidden;
+        }
+        .feature-card i {
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            width: 40px;
+            height: 40px;
+        }
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #fff;
+        }
+        .feature-card p {
+            color: #94a3b8;
+            line-height: 1.6;
+        }
+        .footer-premium {
+            padding: 6rem 0 3rem;
+            border-top: 1px solid var(--glass-border);
+            margin-top: 6rem;
+        }
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 4rem;
+            margin-bottom: 4rem;
         }
     </style>
 </head>
@@ -36,26 +103,119 @@
     <div class="bg-overlay"></div>
 
     <nav class="navbar-premium">
-        <a href="#" class="navbar-brand">Website Phishing Detection Using ML</a>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <i data-lucide="shield-check" style="color: var(--primary); width: 32px; height: 32px;"></i>
+            <a href="#" class="navbar-brand">PhishGuard AI</a>
+        </div>
         <div class="nav-links">
-            <a href="{{ url_for('admin_login') }}" style="color: #64748b; text-decoration: none; font-size: 0.9rem; margin-right: 1.5rem; opacity: 0.6;">Administrator</a>
-            <a href="{{ url_for('login') }}" class="premium-btn" style="padding: 0.75rem 2rem; text-decoration: none;">LOGIN</a>
+            <a href="{{ url_for('admin_login') }}" style="color: #64748b; text-decoration: none; font-size: 0.9rem; margin-right: 1.5rem; opacity: 0.6;">Admin Portal</a>
+            <a href="{{ url_for('login') }}" class="premium-btn" style="padding: 0.75rem 2rem; text-decoration: none;">SIGN IN</a>
         </div>
     </nav>
 
     <div class="container-premium hero-section animate-fade">
         <div class="hero-content">
-            <div style="display: inline-block; padding: 0.5rem 1.5rem; background: rgba(99, 102, 241, 0.1); border: 1px solid var(--primary); border-radius: 2rem; color: var(--primary); font-weight: 600; margin-bottom: 2rem; font-size: 0.9rem; letter-spacing: 0.1em;">
-                SECURE BROWSING ECOSYSTEM
+            <div style="display: inline-flex; align-items: center; gap: 0.75rem; padding: 0.5rem 1.5rem; background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 2rem; color: var(--primary); font-weight: 600; margin-bottom: 2rem; font-size: 0.85rem; letter-spacing: 0.05em;">
+                <i data-lucide="zap" style="width: 16px;"></i> REAL-TIME THREAT MITIGATION
             </div>
-            <h1>Next-Generation <br> <span style="color: var(--primary);">Phishing Detection</span></h1>
-            <p style="font-size: 1.25rem; color: #94a3b8; max-width: 700px; margin: 0 auto 3rem; line-height: 1.6;">
-                Leveraging advanced Random Forest machine learning models to identify and block malicious websites before they can harm your data.
+            <h1>Secure Your Data <br> <span style="color: var(--primary);">Detect Malice Instantly.</span></h1>
+            <p style="font-size: 1.25rem; color: #94a3b8; max-width: 750px; margin: 0 auto 3rem; line-height: 1.7;">
+                Harnessing the power of Random Forest Machine Learning to identify phishing attempts with elite precision across 16 heuristic dimensions.
             </p>
             <div style="display: flex; gap: 1.5rem; justify-content: center;">
-                <a href="{{ url_for('login') }}" class="premium-btn" style="text-decoration: none; padding: 1.25rem 3rem; font-size: 1.2rem;">LAUNCH DETECTOR</a>
+                <a href="{{ url_for('login') }}" class="premium-btn" style="text-decoration: none; padding: 1.25rem 3.5rem; font-size: 1.2rem; display: flex; align-items: center; gap: 1rem;">
+                    LAUNCH ENGINE <i data-lucide="arrow-right"></i>
+                </a>
             </div>
         </div>
     </div>
+
+    <div class="stats-bar">
+        <div class="container-premium">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <h2>{{ total_scans }}+</h2>
+                    <p>URLs Analyzed</p>
+                </div>
+                <div class="stat-item">
+                    <h2>{{ accuracy }}%</h2>
+                    <p>Detection Accuracy</p>
+                </div>
+                <div class="stat-item">
+                    <h2>16</h2>
+                    <p>Heuristic Layers</p>
+                </div>
+                <div class="stat-item">
+                    <h2>&lt; 50ms</h2>
+                    <p>Response Latency</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-premium">
+        <div class="header-text">
+            <h2 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 1rem;">Three Pillars of Protection</h2>
+            <p>Our multi-layered approach ensures your digital footprint remains invisible to attackers.</p>
+        </div>
+
+        <div class="feature-grid">
+            <div class="glass-card feature-card">
+                <i data-lucide="brain-circuit"></i>
+                <h3>Advanced ML Engine</h3>
+                <p>Proprietary Random Forest architecture trained on millions of verified datasets to predict malicious behavior before it happens.</p>
+            </div>
+            <div class="glass-card feature-card">
+                <i data-lucide="fingerprint"></i>
+                <h3>Heuristic Analysis</h3>
+                <p>Deep-dive scanning of 16 critical URL features including domain age, SSL validity, and suspicious character patterns.</p>
+            </div>
+            <div class="glass-card feature-card">
+                <i data-lucide="globe"></i>
+                <h3>Global Threat Intel</h3>
+                <p>Seamless integration with Google Safe Browsing and VirusTotal to cross-reference URLs against live global blacklists.</p>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer-premium">
+        <div class="container-premium">
+            <div class="footer-grid">
+                <div>
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+                        <i data-lucide="shield-check" style="color: var(--primary); width: 24px;"></i>
+                        <span style="font-weight: 800; font-size: 1.2rem;">PhishGuard AI</span>
+                    </div>
+                    <p style="color: #64748b; line-height: 1.6;">Building a safer internet through automated intelligence and real-time website behavior analysis.</p>
+                </div>
+                <div>
+                    <h4 style="margin-bottom: 1.5rem; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.1em; color: #fff;">Platform</h4>
+                    <ul style="list-style: none; padding: 0; color: #64748b; line-height: 2;">
+                        <li><a href="{{ url_for('login') }}" style="color: inherit; text-decoration: none;">Launch Engine</a></li>
+                        <li><a href="{{ url_for('admin_login') }}" style="color: inherit; text-decoration: none;">Admin Access</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 style="margin-bottom: 1.5rem; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.1em; color: #fff;">Security</h4>
+                    <ul style="list-style: none; padding: 0; color: #64748b; line-height: 2;">
+                        <li>Privacy Policy</li>
+                        <li>Terms of Service</li>
+                    </ul>
+                </div>
+            </div>
+            <div style="border-top: 1px solid var(--glass-border); padding-top: 2rem; display: flex; justify-content: space-between; align-items: center; color: #475569; font-size: 0.85rem;">
+                <p>&copy; 2026 PhishGuard AI Systems. All rights reserved.</p>
+                <div style="display: flex; gap: 1.5rem;">
+                    <i data-lucide="twitter" style="width: 18px; cursor: pointer;"></i>
+                    <i data-lucide="github" style="width: 18px; cursor: pointer;"></i>
+                    <i data-lucide="linkedin" style="width: 18px; cursor: pointer;"></i>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
 </body>
 </html>

@@ -6,6 +6,7 @@
     <title>Dashboard | Website Phishing Detection Using ML</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style_premium.css') }}">
+    <script src="https://unpkg.com/lucide@latest"></script>
     <script>
         // Disable Right-Click
         document.addEventListener('contextmenu', event => event.preventDefault());
@@ -43,9 +44,14 @@
             border-color: var(--primary);
         }
         .dash-icon {
-            font-size: 3rem;
+            color: var(--primary);
             margin-bottom: 1.5rem;
-            display: block;
+            display: flex;
+            justify-content: center;
+        }
+        .dash-icon i {
+            width: 48px;
+            height: 48px;
         }
         .dash-card h3 {
             font-size: 1.5rem;
@@ -80,24 +86,26 @@
 
         <div class="dashboard-grid">
             <a href="{{ url_for('detect') }}" class="glass-card dash-card">
-                <span class="dash-icon">🔍</span>
+                <div class="dash-icon"><i data-lucide="search"></i></div>
                 <h3>Smart Detector</h3>
                 <p>Instantly scan URLs or perform manual feature analysis using our AI engine.</p>
             </a>
 
             <a href="{{ url_for('information') }}" class="glass-card dash-card">
-                <span class="dash-icon">📊</span>
+                <div class="dash-icon"><i data-lucide="bar-chart-3"></i></div>
                 <h3>System Accuracy</h3>
                 <p>View detailed performance metrics and model training statistics.</p>
             </a>
 
             <a href="{{ url_for('chart') }}" class="glass-card dash-card">
-                <span class="dash-icon">📈</span>
+                <div class="dash-icon"><i data-lucide="line-chart"></i></div>
                 <h3>Threat Analytics</h3>
                 <p>Visualize phishing trends and historical data via interactive charts.</p>
             </a>
-
         </div>
     </div>
+    <script>
+        lucide.createIcons();
+    </script>
 </body>
 </html>

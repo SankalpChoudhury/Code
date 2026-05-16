@@ -7,6 +7,15 @@ from datetime import datetime
 import os
 
 def extract_features(url):
+    try:
+        parsed_url = urlparse(url)
+        host = parsed_url.netloc.lower().replace("www.", "")
+        if is_trusted_domain(host):
+            # Return a perfectly safe profile for known mega-trusted domains
+            return [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1]
+    except:
+        pass
+
     features = []
     
     # 1. Using IP Address (ip)
@@ -92,11 +101,13 @@ def extract_features(url):
             
         dns = 1
     except:
-        ab = 2
-        ad = 2
-        dns = 2
+        # If WHOIS fails, we mark as 'Suspicious' (0) instead of 'Phishing' (2)
+        # This prevents safe sites from being blocked just because of a WHOIS timeout
+        ab = 0
+        ad = 0
+        dns = 0
 
-    wt = 1 if dns == 1 else 2
+    wt = 1 if dns == 1 else 0
 
     return [ip, ul, at, ps, sd, ht, ru, ua, sfh, ab, re_redir, mo, po, ad, dns, wt]
 
@@ -135,7 +146,8 @@ def is_trusted_domain(host):
         "flipkart.com", "snapdeal.com", "amazon.in", "amazon.com", "paytm.com",
         "myntra.com", "google.com", "microsoft.com", "apple.com", "facebook.com",
         "instagram.com", "twitter.com", "linkedin.com", "netflix.com", "github.com",
-        "flipkart.in", "snapdeal.in"
+        "flipkart.in", "snapdeal.in", "youtube.com", "youtube.co.in", "gmail.com",
+        "drive.google.com", "outlook.com", "live.com", "yahoo.com", "hot.mail", "icloud.com"
     ]
     return any(host == td or host.endswith("." + td) for td in trusted_domains)
 
